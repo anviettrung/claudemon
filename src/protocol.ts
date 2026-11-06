@@ -64,7 +64,8 @@ export interface MachineInfo {
   name: string;
   computer: string;
   host?: string;
-  // Địa chỉ HTTPS trong tailnet (https://<host>.<tailnet>.ts.net); không có khi máy chưa vào Tailscale.
+  // Địa chỉ HTTPS để máy khác / điện thoại vào: `url` trong machines.json, hoặc https://<host>.<tailnet>.ts.net khi dùng
+  // Tailscale. Không có thì máy chỉ dùng được tại chỗ.
   url?: string;
 }
 

@@ -1,13 +1,19 @@
 {
-  "_doc": "Danh sách máy cho ClaudeMon. owner = email tài khoản Tailscale của bạn (chỉ tài khoản này vào được). computer = $env:COMPUTERNAME, host = tên máy trong tailnet (install.ps1 tự đặt), name = tên ngắn hiện trên giao diện. Không chứa bí mật.",
+  "_doc": "Danh sách máy cho ClaudeMon. owner = email bạn dùng để đăng nhập lớp truy cập từ xa (tài khoản Tailscale, email Cloudflare Access...); chỉ người này vào được từ xa. computer = $env:COMPUTERNAME, name = tên ngắn hiện trên giao diện, host = tên máy trong tailnet (chế độ tailscale), url = địa chỉ HTTPS của máy khi dùng Cloudflare Tunnel hay proxy khác (vd https://pc1.example.com). Không chứa bí mật.",
   "owner": "you@example.com",
   "port": 7420,
+  "access": {
+    "_doc": "Cách máy khác và điện thoại vào agent. mode: tailscale (mặc định, dùng tailscale serve) | cloudflare (Cloudflare Tunnel + Access: điền teamDomain và aud) | proxy (reverse proxy tự xác thực, gắn email vào header userHeader) | local (chỉ dùng trên chính máy). Xem README, mục Truy cập từ xa.",
+    "mode": "tailscale",
+    "cloudflare": { "teamDomain": "", "aud": "" },
+    "userHeader": ""
+  },
   "wakeup": {
     "_doc": "Tự mở lại cửa sổ 5 giờ của Claude (src/wakeup.ts). dailyResetAt = giờ muốn reset mỗi ngày; không mở cửa sổ mới từ quietFrom tới dailyResetAt - windowHours. Bật bằng enabled: true.",
     "claude": { "enabled": false, "dailyResetAt": "10:30", "quietFrom": "00:00", "windowHours": 5 }
   },
   "machines": [
-    { "name": "PC1", "computer": "DESKTOP-XXXXXXX", "host": "pc1" },
-    { "name": "PC2", "computer": "DESKTOP-YYYYYYY", "host": "pc2" }
+    { "name": "PC1", "computer": "DESKTOP-XXXXXXX", "host": "pc1", "url": "" },
+    { "name": "PC2", "computer": "DESKTOP-YYYYYYY", "host": "pc2", "url": "" }
   ]
 }

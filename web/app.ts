@@ -53,7 +53,7 @@ const NEW_SESSION_EFFORT: Effort = 'medium';
 // Một agent trên một máy.
 interface Conn {
   machine: MachineInfo;
-  // '' = cùng nguồn với trang; còn lại là https://<host>.<tailnet>.ts.net
+  // '' = cùng nguồn với trang; còn lại là địa chỉ HTTPS của máy đó (tailnet, Cloudflare Tunnel...)
   base: string | null;
   ok: boolean;
   sessions: SessionSummary[];
@@ -82,8 +82,10 @@ const state = {
 // ---------- API ----------
 
 async function api<T = any>(conn: Conn, path: string, init?: { body?: unknown }): Promise<T> {
-  if (conn.base === null) throw new Error(`Máy ${conn.machine.name} chưa vào Tailscale`);
+  if (conn.base === null) throw new Error(`Máy ${conn.machine.name} chưa có địa chỉ truy cập từ xa (url / Tailscale)`);
   const res = await fetch(conn.base + path, {
+    // Gửi kèm cookie đăng nhập của lớp chuyển tiếp (vd CF_Authorization của Cloudflare Access) khi gọi sang máy khác.
+    credentials: conn.base ? 'include' : 'same-origin',
     method: init?.body ? 'POST' : 'GET',
     headers: init?.body ? { 'content-type': 'application/json' } : undefined,
     body: init?.body ? JSON.stringify(init.body) : undefined,
@@ -692,7 +694,7 @@ function renderSessions() {
 
 function machineMeta(conn: Conn, count: number) {
   const waiting = conn.sessions.filter((s) => hasAsk(conn, s.id)).length;
-  return conn.base === null ? 'chưa vào Tailscale' : !conn.ok ? 'mất kết nối' : waiting ? `${waiting} chờ duyệt` : String(count);
+  return conn.base === null ? 'chưa có địa chỉ từ xa' : !conn.ok ? 'mất kết nối' : waiting ? `${waiting} chờ duyệt` : String(count);
 }
 
 // Máy → thư mục làm việc (nhóm con, mặc định đóng) → session.
@@ -3946,7 +3948,7 @@ async function init() {
   const info: { self: MachineInfo; machines: MachineInfo[]; modes: string[] } = await res.json();
   state.self = info.self;
   state.modes = info.modes;
-  // Máy đang phục vụ trang lên đầu; các máy khác gọi qua địa chỉ tailnet.
+  // Máy đang phục vụ trang lên đầu; các máy khác gọi qua địa chỉ HTTPS của chúng.
   const ordered = [info.self, ...info.machines.filter((m) => m.computer !== info.self.computer)];
   state.conns = ordered.map((m) => ({
     machine: m,

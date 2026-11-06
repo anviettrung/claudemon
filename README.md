@@ -13,19 +13,25 @@ Cài ClaudeMon cho tôi trên máy Windows này. Mã nguồn: https://github.com
 
 1. Kiểm tra có git, GitHub CLI (gh) đã đăng nhập (`gh auth status`), Claude Code (`claude --version`) đã đăng nhập.
    Thiếu gì thì cài bằng winget nếu được; việc cần tôi đăng nhập thì dừng lại chỉ tôi cách làm.
-2. Hỏi tôi: (a) thư mục đặt kho (gợi ý D:\Projects\claudemon, nên giống nhau trên mọi máy), (b) email tài khoản
-   Tailscale tôi dùng (hoặc sẽ dùng), (c) đây là máy đầu tiên hay tôi đã có kho claudemon riêng rồi.
+2. Hỏi tôi: (a) thư mục đặt kho (gợi ý D:\Projects\claudemon, nên giống nhau trên mọi máy), (b) đây là máy đầu tiên
+   hay tôi đã có kho claudemon riêng rồi, (c) tôi muốn vào ClaudeMon từ máy khác / điện thoại bằng gì: Tailscale
+   (mặc định, dễ nhất), Cloudflare Tunnel + Access (cần tên miền trên Cloudflare), proxy khác (ngrok OAuth,
+   oauth2-proxy...), hay chỉ dùng trên máy này; giải thích ngắn khác biệt nếu tôi chưa rõ, (d) email tôi dùng để đăng
+   nhập cách đó.
 3. Máy đầu tiên: clone https://github.com/anviettrung/claudemon.git vào thư mục đó, đổi remote origin thành upstream,
    tạo kho private của tôi bằng `gh repo create <tài khoản gh của tôi>/claudemon --private --source . --push`.
    Đã có kho riêng: clone kho riêng của tôi vào thư mục đó.
-4. Đọc README.md trong kho, làm theo mục "Install manual": sửa machines.json (owner = email ở bước 2; thêm dòng cho
-   máy này nếu chưa có, computer = $env:COMPUTERNAME, host = tên ngắn chữ thường không dấu, name = tên ngắn viết hoa),
-   commit và push. Không để lại dòng mẫu PC1/PC2 nếu không dùng.
-5. Cài Tailscale nếu chưa có (`winget install --id Tailscale.Tailscale -e`). Nếu Tailscale chưa đăng nhập, chỉ tôi
-   chạy `tailscale up --unattended` và đăng nhập trong trình duyệt, chờ tôi báo xong.
+4. Đọc README.md trong kho, làm theo mục "Install manual": sửa machines.json (owner = email ở bước 2d; access.mode
+   theo bước 2c; thêm dòng cho máy này nếu chưa có, computer = $env:COMPUTERNAME, host = tên ngắn chữ thường không
+   dấu, name = tên ngắn viết hoa, url nếu không dùng Tailscale), commit và push. Không để lại dòng mẫu PC1/PC2 nếu
+   không dùng.
+5. Dựng cách truy cập từ xa đã chọn theo mục "3. Truy cập từ xa" trong README: tự cài phần mềm được (tailscale,
+   cloudflared) thì cài; việc phải đăng nhập hay bấm trên trang quản trị (Tailscale, Cloudflare Zero Trust) thì chỉ tôi
+   từng bước, chờ tôi báo xong, hỏi tôi giá trị cần điền (AUD tag, team domain, hostname) rồi ghi vào machines.json.
 6. Chạy `powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1` trong kho. Đọc từng dòng nó in ra, có lỗi
    thì đọc agent.log / agent.err.log trong kho để sửa.
-7. Kiểm tra http://127.0.0.1:7420/api/info trả JSON. Chạy `tailscale serve status` xem đã có cổng 7420.
+7. Kiểm tra http://127.0.0.1:7420/api/info trả JSON. Dùng Tailscale thì chạy `tailscale serve status` xem đã có cổng
+   7420; dùng cách khác thì nhờ tôi mở url của máy này trên điện thoại.
 8. Cuối cùng liệt kê cho tôi các việc phải tự làm tay (mục "Việc làm tay" trong README) và địa chỉ để mở ClaudeMon
    trên máy này và trên điện thoại.
 ````
@@ -34,8 +40,8 @@ Máy thứ hai trở đi: dán lại đúng prompt đó, trả lời "đã có k
 
 ## Install manual
 
-Cần: **Windows** 10/11, `git`, Claude Code đã đăng nhập (`claude`). Bun được `install.ps1` tự cài bằng winget. Các máy
-và điện thoại nối với nhau bằng **Tailscale** (không mở port, không cần server).
+Cần: **Windows** 10/11, `git`, Claude Code đã đăng nhập (`claude`). Bun được `install.ps1` tự cài bằng winget. Truy cập
+từ máy khác và điện thoại qua Tailscale, Cloudflare Tunnel hoặc proxy khác tuỳ bạn (bước 3), không cần mở port.
 
 **1. Tạo kho riêng (một lần).** Mỗi người một kho private: ClaudeMon ghi cách sắp xếp session lên nhánh
 `claudemon-library` của kho này, và nút *Khởi động lại agent* kéo bản mới từ kho này. Giữ kho gốc làm `upstream`
@@ -52,23 +58,63 @@ gh repo create <you>/claudemon --private --source . --push     # hoặc tạo kh
 
 | Trường | Ý nghĩa |
 |---|---|
-| `owner` | Email tài khoản Tailscale của bạn. Truy cập qua tailnet chỉ nhận đúng tài khoản này. |
+| `owner` | Email bạn dùng để đăng nhập lớp truy cập từ xa (tài khoản Tailscale, email Cloudflare Access...). Truy cập từ xa chỉ nhận đúng người này. |
+| `access` | Cách truy cập từ xa, xem bước 3 |
 | `machines[].name` | Tên ngắn hiện trên giao diện (vd `PC1`, `NHA`, `CTY`) |
 | `machines[].computer` | Kết quả `$env:COMPUTERNAME` trên máy đó |
-| `machines[].host` | Tên máy trong tailnet, chữ thường (`install.ps1` tự đặt bằng `tailscale set --hostname`) |
+| `machines[].host` | Tên máy trong tailnet, chữ thường (chế độ `tailscale`; `install.ps1` tự đặt bằng `tailscale set --hostname`) |
+| `machines[].url` | Địa chỉ HTTPS của máy khi không dùng Tailscale, vd `https://pc1-claude.example.com` |
 | `port` | Cổng agent, mặc định 7420 |
 | `wakeup.claude` | `enabled: true` để tự mở cửa sổ 5 giờ của Claude theo giờ `dailyResetAt` (xem Kiến trúc) |
 
 Máy không có trong danh sách vẫn chạy được, chỉ dùng một mình qua `localhost`.
 
-**3. Tailscale** (bỏ qua nếu chỉ dùng một máy, mở bằng `localhost`):
+**3. Truy cập từ xa** (chọn một cách, khai ở `access.mode` trong `machines.json`; chỉ dùng một máy thì chọn `local`
+và mở bằng `localhost`). ClaudeMon chỉ nghe ở `127.0.0.1`; máy khác và điện thoại vào qua một lớp chuyển tiếp HTTPS,
+lớp đó phải xác nhận người dùng là `owner`.
+
+| `mode` | Dùng gì | Hợp khi |
+|---|---|---|
+| `tailscale` (mặc định) | Tailscale + `tailscale serve` | Dễ nhất, không cần tên miền. Mọi thiết bị phải cài Tailscale. |
+| `cloudflare` | Cloudflare Tunnel + Cloudflare Access | Có tên miền trên Cloudflare, muốn mở từ trình duyệt bất kỳ không cần cài gì. |
+| `proxy` | Reverse proxy tự xác thực: ngrok (OAuth), oauth2-proxy, Authelia, Pomerium... | Đã có sẵn hạ tầng riêng. |
+| `local` | Không có | Chỉ dùng trên chính máy. |
+
+*Tailscale*
 
 - Một lần trên [trang quản trị](https://login.tailscale.com/admin) sau khi máy đầu tiên vào tailnet: trang DNS bật
   **MagicDNS** và **HTTPS Certificates** (tên máy sẽ nằm trong nhật ký chứng chỉ công khai, đừng đặt tên chứa thông tin
   riêng); trang Machines chọn **Disable key expiry** cho từng PC để máy không tự rớt sau 180 ngày.
 - Mỗi PC: `winget install --id Tailscale.Tailscale -e`, rồi `tailscale up --unattended` (mở trình duyệt để đăng nhập;
-  `--unattended` để chạy cả khi chưa đăng nhập Windows).
-- Điện thoại: cài app Tailscale, đăng nhập cùng tài khoản, bật VPN.
+  `--unattended` để chạy cả khi chưa đăng nhập Windows). `install.ps1` tự đặt tên máy theo `host` và bật `tailscale serve`.
+- Điện thoại: cài app Tailscale, đăng nhập cùng tài khoản, bật VPN. `owner` = email tài khoản Tailscale.
+
+*Cloudflare Tunnel + Access* (gói Zero Trust miễn phí đủ dùng)
+
+- Mỗi PC: `winget install --id Cloudflare.cloudflared -e`. Trong [Zero Trust](https://one.dash.cloudflare.com) →
+  Networks → Tunnels → *Create a tunnel* (Cloudflared), chạy lệnh `cloudflared service install <token>` nó đưa. Thêm
+  *Public hostname* cho máy đó, vd `pc1-claude.example.com` → `http://localhost:7420`. Mỗi máy một tunnel, một hostname, cùng một
+  tên miền.
+- Một lần: Access → Applications → *Add an application* → Self-hosted, thêm mọi hostname ở trên, policy *Allow* với
+  email của bạn. Ghi lại **Application Audience (AUD) tag** và tên miền team (`<team>.cloudflareaccess.com`, ở
+  Settings → Custom pages / Team domain).
+- Để trang mở từ một máy gọi được sang máy khác: trong application đó, mục CORS bật *Allow credentials*, thêm mọi
+  hostname vào *Allowed origins*, bật *Bypass OPTIONS requests to origin*. Mỗi hostname phải mở (đăng nhập) một lần
+  trên từng trình duyệt; hostname nào chưa đăng nhập thì máy đó hiện mất kết nối.
+- `machines.json`: `"access": { "mode": "cloudflare", "cloudflare": { "teamDomain": "<team>.cloudflareaccess.com",
+  "aud": "<AUD tag>" } }`, mỗi máy điền `url` (vd `https://pc1-claude.example.com`), `owner` = email đăng nhập Access.
+  ClaudeMon kiểm chữ ký JWT của Access, nên ai gọi thẳng tunnel mà không qua Access đều bị chặn.
+
+*Proxy khác*
+
+- Proxy đưa mỗi máy ra một địa chỉ HTTPS, tự bắt đăng nhập, rồi gắn email người dùng vào một header và **ghi đè**
+  header đó nếu client tự gửi. Vd ngrok `ngrok http 7420 --url <tên miền> --oauth google --oauth-allow-email <email>`
+  gắn `ngrok-auth-user-email`; oauth2-proxy gắn `X-Forwarded-Email`.
+- `machines.json`: `"access": { "mode": "proxy", "userHeader": "<tên header>" }`, mỗi máy điền `url`.
+
+Với `cloudflare` và `proxy`: mở ClaudeMon bằng url của một máy (không phải `localhost`) để thấy cả các máy khác, và
+thông báo đẩy chỉ báo session của máy đang phục vụ trang (agent không nối thẳng sang agent máy khác được khi lớp
+chuyển tiếp đòi đăng nhập trình duyệt).
 
 **4. Cài trên từng PC:** clone kho riêng của bạn (cùng đường dẫn càng tốt), nháy đúp `install.cmd`. Chạy lại bao nhiêu
 lần cũng được. Nó làm:
@@ -77,13 +123,13 @@ lần cũng được. Nó làm:
 2. Đăng ký Scheduled Task **ClaudeMon Agent** chạy lúc đăng nhập, qua `conhost --headless` nên không có cửa sổ.
 3. Khởi động lại agent khi kho sang commit khác, trừ khi đang có session chạy (để lần cài sau).
 4. Tạo shortcut ClaudeMon ở Desktop và Start Menu (bỏ qua nếu đã cài app PWA từ trình duyệt).
-5. Tailscale đã đăng nhập thì đặt tên máy theo `host` và bật `tailscale serve --bg 7420`
-   (`https://<host>.<tailnet>.ts.net` → `http://127.0.0.1:7420`, chỉ trong tailnet).
+5. Chế độ `tailscale` và Tailscale đã đăng nhập: đặt tên máy theo `host` và bật `tailscale serve --bg 7420`
+   (`https://<host>.<tailnet>.ts.net` → `http://127.0.0.1:7420`, chỉ trong tailnet). Chế độ khác thì bỏ qua bước này.
 
 **Việc làm tay sau khi cài:**
 
-- Mở ClaudeMon: `http://127.0.0.1:7420` trên chính máy, `https://<host>.<tailnet>.ts.net` từ máy khác hoặc điện thoại.
-  Kiểm tra: `tailscale status` trên mỗi PC thấy đủ các máy và điện thoại.
+- Mở ClaudeMon: `http://127.0.0.1:7420` trên chính máy; từ máy khác hoặc điện thoại mở `https://<host>.<tailnet>.ts.net`
+  (Tailscale) hoặc `url` của máy (Cloudflare, proxy).
 - Cài thành app: Chrome trên PC bấm biểu tượng Cài trên thanh địa chỉ; điện thoại chọn *Thêm vào màn hình chính*.
 - Thông báo đẩy: menu ◐ → *Thông báo trên thiết bị này*. iPhone/iPad phải mở ClaudeMon từ màn hình chính (iOS 16.4+).
 
@@ -103,9 +149,12 @@ lần cũng được. Nó làm:
 ```powershell
 Unregister-ScheduledTask 'ClaudeMon Agent' -Confirm:$false
 Get-CimInstance Win32_Process -Filter "Name='bun.exe'" | ? CommandLine -like '*claudemon*' | % { Stop-Process -Id $_.ProcessId -Force }
-tailscale serve --https=443 off
+tailscale serve --https=443 off                # nếu dùng Tailscale
 Remove-Item "$env:USERPROFILE\.claudemon" -Recurse -Force
 ```
+
+Dùng Cloudflare Tunnel thì gỡ thêm `cloudflared service uninstall` (cần quyền admin) và xoá tunnel, hostname trong
+Zero Trust; dùng proxy khác thì tắt nó theo cách của nó.
 
 Rồi xoá shortcut `ClaudeMon.lnk` ở Desktop và Start Menu (hoặc gỡ app PWA trong Chrome), và thư mục kho.
 `~/ClaudeMon/scratch-workspaces` chứa thư mục của các session tự do: giữ hoặc xoá tuỳ ý. Session Claude Code
@@ -115,9 +164,9 @@ Rồi xoá shortcut `ClaudeMon.lnk` ở Desktop và Start Menu (hoặc gỡ app 
 
 ```
  Trình duyệt (PC / điện thoại)
-        │  HTTPS + WebSocket, chỉ trong tailnet (tailscale serve)
+        │  HTTPS + WebSocket qua lớp chuyển tiếp (tailscale serve / Cloudflare Tunnel / proxy)
         ▼
- ┌───────────────────┐  tailnet  ┌───────────────────┐
+ ┌───────────────────┐   HTTPS   ┌───────────────────┐
  │ claudemon-agent A │◄─────────►│ claudemon-agent B │
  └─────────┬─────────┘           └─────────┬─────────┘
            │ Claude Agent SDK              │ Claude Agent SDK
@@ -141,7 +190,7 @@ Rồi xoá shortcut `ClaudeMon.lnk` ở Desktop và Start Menu (hoặc gỡ app 
   `machines.json`.
 - Xoá session: chuyển `<id>.jsonl` và thư mục `<id>/` vào Thùng rác của máy đó, khôi phục được.
 
-**Đồng bộ.** Trạng thái sống (session nào đang chạy, tin nhắn đang đến) đi thẳng giữa các agent qua tailnet. Cách sắp
+**Đồng bộ.** Trạng thái sống (session nào đang chạy, tin nhắn đang đến) đi thẳng từ agent tới trình duyệt (và giữa các agent khi dùng Tailscale). Cách sắp
 xếp (thư mục, nhãn, ghim, tên đặt lại, dự án, task kèm ảnh) nằm trong `library.json` trên nhánh riêng
 `claudemon-library` của kho:
 
@@ -153,10 +202,13 @@ xếp (thư mục, nhãn, ghim, tên đặt lại, dự án, task kèm ảnh) n�
 
 **Bảo mật.** Agent chạy được mọi lệnh trên máy, nên:
 
-- Chỉ nghe ở `127.0.0.1`. Máy khác vào qua `tailscale serve` (cấp HTTPS, điều kiện để cài PWA); không bao giờ nghe ở
-  `0.0.0.0`, không dùng `tailscale funnel`.
-- Request qua `tailscale serve` mang header `Tailscale-User-Login`; agent chỉ nhận đúng `owner`. Request thẳng từ chính
-  máy (không có header) thì cho qua. WebSocket chỉ nhận `Origin` là localhost hoặc địa chỉ HTTPS của các máy khai báo.
+- Chỉ nghe ở `127.0.0.1`, không bao giờ nghe ở `0.0.0.0`. Máy khác vào qua lớp chuyển tiếp HTTPS (điều kiện để cài
+  PWA): `tailscale serve` (chỉ trong tailnet, không dùng `tailscale funnel`), Cloudflare Tunnel, hoặc proxy khác.
+- `src/access.ts` quyết định ai được vào. Request thẳng từ chính máy (Host là localhost, không có header chuyển tiếp
+  như `X-Forwarded-For`, `Cf-Connecting-Ip`) thì cho qua. Request qua lớp chuyển tiếp phải mang danh tính đúng `owner`:
+  header `Tailscale-User-Login` (tailscale), JWT `Cf-Access-Jwt-Assertion` / cookie `CF_Authorization` kiểm chữ ký theo
+  khoá công khai của team, đúng `aud`, còn hạn (cloudflare), hoặc header `userHeader` (proxy). Chế độ `local` chặn mọi
+  request từ xa. WebSocket và CORS chỉ nhận `Origin` là localhost hoặc địa chỉ HTTPS của các máy khai báo.
 - Kho không chứa token hay mật khẩu. Khoá VAPID của thông báo đẩy (`push.keys.json`) và danh sách thiết bị
   (`push.subs.json`) là gitignore, riêng từng máy.
 

@@ -206,6 +206,8 @@ if ($browser) {
 }
 
 # --- 6. Tailscale ---------------------------------------------------------------------------------
+$Mode = if ($Config.access -and $Config.access.mode) { [string]$Config.access.mode } else { 'tailscale' }
+if ($Mode -ne 'tailscale') { Say "truy cập từ xa: chế độ '$Mode' (machines.json > access), bỏ qua tailscale serve"; exit 0 }
 $ts = (Get-Command tailscale -ErrorAction SilentlyContinue).Source
 if (-not $ts) { $ts = 'C:\Program Files\Tailscale\tailscale.exe' }
 if (-not (Test-Path -LiteralPath $ts)) { Say 'chưa cài Tailscale, máy khác chưa vào được agent này'; exit 0 }

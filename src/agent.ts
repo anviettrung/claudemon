@@ -32,10 +32,12 @@ import { readTranscript, recycle, sessionFiles } from './transcript.ts';
 import { CLAUDE_PATH, contextFromUsage, LiveSession, type Decision, setChecklistHooks } from './sessions.ts';
 import { ClaudeWaker, type WakeConfig } from './wakeup.ts';
 import { PushHub } from './push.ts';
+import { accessMode, isAllowed, isLocal, isOriginAllowed, type AccessConfig } from './access.ts';
 
 interface MachinesFile {
   owner: string;
   port: number;
+  access?: AccessConfig;
   machines: MachineInfo[];
   wakeup?: { claude?: WakeConfig };
 }
@@ -49,6 +51,8 @@ const self: MachineInfo = config.machines.find((m) => m.computer.toUpperCase() =
 };
 const PORT = Number(process.env.CLAUDEMON_PORT ?? config.port);
 
+const ACCESS = accessMode(config.access);
+
 // Hậu tố MagicDNS của tailnet (vd tailxxxxxx.ts.net), lấy từ `tailscale status`.
 async function tailnetSuffix(): Promise<string | null> {
   const exe = Bun.which('tailscale') ?? 'C:\\Program Files\\Tailscale\\tailscale.exe';
@@ -60,11 +64,13 @@ async function tailnetSuffix(): Promise<string | null> {
     return null;
   }
 }
-const suffix = await tailnetSuffix();
+// Địa chỉ HTTPS của từng máy: `url` khai trong machines.json (Cloudflare Tunnel, proxy...), hoặc tự tính từ tailnet.
+const suffix = ACCESS === 'tailscale' ? await tailnetSuffix() : null;
 const machines: MachineInfo[] = config.machines.map((m) => ({
   ...m,
-  url: suffix && m.host ? `https://${m.host}.${suffix}` : undefined,
+  url: m.url?.replace(/\/+$/, '') || (suffix && m.host ? `https://${m.host}.${suffix}` : undefined),
 }));
+if (ACCESS === 'local') for (const m of machines) m.url = undefined;
 const me = machines.find((m) => m.computer === self.computer);
 if (me) self.url = me.url;
 // Tệp lịch sử được ghi trong khoảng này mà không phải do agent giữ thì coi như đang mở ở nơi khác.
@@ -192,7 +198,8 @@ push = new PushHub(
   resolve(ROOT, 'push.keys.json'),
   resolve(ROOT, 'push.subs.json'),
   self,
-  machines.filter((m) => m.computer.toUpperCase() !== computer),
+  // Agent nối thẳng sang agent máy khác chỉ khi qua Tailscale: Cloudflare Access hay proxy khác đòi đăng nhập trình duyệt.
+  ACCESS === 'tailscale' ? machines.filter((m) => m.computer.toUpperCase() !== computer) : [],
   (machine, id, fallback) => library.lib.sessions[`${machine}:${id}`]?.title || fallback || 'Session',
   () => summaries(),
 );
@@ -397,24 +404,9 @@ async function deleteSessions(ids: string[]): Promise<DeleteResult> {
   return result;
 }
 
-// Chỉ nhận request từ chính máy này, hoặc qua `tailscale serve` từ đúng tài khoản chủ.
-function allowed(req: Request): boolean {
-  const login = req.headers.get('tailscale-user-login');
-  return login === null || login.toLowerCase() === config.owner.toLowerCase();
-}
-
-function originAllowed(req: Request): boolean {
-  const origin = req.headers.get('origin');
-  if (!origin) return true;
-  try {
-    const u = new URL(origin);
-    if (u.hostname === 'localhost' || u.hostname === '127.0.0.1') return true;
-    const label = u.hostname.split('.')[0];
-    return u.protocol === 'https:' && u.hostname.endsWith('.ts.net') && config.machines.some((m) => m.host === label);
-  } catch {
-    return false;
-  }
-}
+// Chỉ nhận request từ chính máy này, hoặc qua lớp chuyển tiếp (access.mode) từ đúng tài khoản chủ. Xem src/access.ts.
+const allowed = (req: Request) => isAllowed(req, config.owner, config.access);
+const originAllowed = (req: Request) => isOriginAllowed(req, machines.map((m) => m.url));
 
 // Session tự do (không thuộc dự án): mỗi session một thư mục riêng ~/ClaudeMon/scratch-workspaces/scratch-<ngày giờ>,
 // để tệp nó tạo ra (báo cáo, ảnh) không lẫn vào nhau. Giao diện nhận ra nhóm này qua đoạn "scratch-workspaces".
@@ -455,6 +447,7 @@ function withCors(req: Request, res: Response): Response {
   const origin = req.headers.get('origin');
   if (origin && originAllowed(req)) {
     res.headers.set('access-control-allow-origin', origin);
+    res.headers.set('access-control-allow-credentials', 'true');
     res.headers.set('vary', 'origin');
   }
   return res;
@@ -464,7 +457,7 @@ type Handler = (req: Bun.BunRequest<any>) => Response | Promise<Response>;
 
 function guard(handler: Handler): Handler {
   return async (req) => {
-    if (!allowed(req) || !originAllowed(req)) return fail('forbidden', 403);
+    if (!(await allowed(req)) || !originAllowed(req)) return fail('forbidden', 403);
     try {
       return withCors(req, await handler(req));
     } catch (err) {
@@ -808,10 +801,10 @@ const server = Bun.serve({
 
     // Đường dẫn có phải thư mục trên máy này không: { path } -> { ok, path }
     // App desktop (cửa sổ Chrome/Edge --app ở 127.0.0.1) mở link bằng trình duyệt mặc định của máy.
-    // Chỉ nhận từ chính máy này (không qua tailscale serve) và chỉ link http(s)/mailto.
+    // Chỉ nhận từ chính máy này (không qua lớp chuyển tiếp nào) và chỉ link http(s)/mailto.
     '/api/open-url': api({
       POST: async (req) => {
-        if (req.headers.get('tailscale-user-login') !== null) return fail('chỉ dùng trên chính máy này', 403);
+        if (!isLocal(req)) return fail('chỉ dùng trên chính máy này', 403);
         const origin = req.headers.get('origin');
         if (origin && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(origin)) return fail('forbidden', 403);
         const raw = str((await body(req)).url, 4000);
@@ -1081,10 +1074,10 @@ const server = Bun.serve({
     }),
   },
 
-  fetch(req, srv) {
+  async fetch(req, srv) {
     const url = new URL(req.url);
     if (url.pathname === '/ws') {
-      if (!allowed(req) || !originAllowed(req)) return new Response('forbidden', { status: 403 });
+      if (!(await allowed(req)) || !originAllowed(req)) return new Response('forbidden', { status: 403 });
       if (srv.upgrade(req)) return;
       return new Response('upgrade failed', { status: 400 });
     }
