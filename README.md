@@ -9,8 +9,7 @@ duyệt quyền và đóng được session đang chạy trên từng máy. Sess
 Mở Claude Code (hoặc AI agent khác chạy được lệnh trên máy) ở một thư mục bất kỳ trên PC, dán prompt sau:
 
 ````text
-Cài ClaudeMon cho tôi trên máy Windows này. Mã nguồn: https://github.com/anviettrung/claudemon (private, tôi đã được
-cấp quyền đọc). Làm lần lượt, mỗi bước kiểm tra kết quả rồi mới sang bước sau:
+Cài ClaudeMon cho tôi trên máy Windows này. Mã nguồn: https://github.com/anviettrung/claudemon. Làm lần lượt, mỗi bước kiểm tra kết quả rồi mới sang bước sau:
 
 1. Kiểm tra có git, GitHub CLI (gh) đã đăng nhập (`gh auth status`), Claude Code (`claude --version`) đã đăng nhập.
    Thiếu gì thì cài bằng winget nếu được; việc cần tôi đăng nhập thì dừng lại chỉ tôi cách làm.
