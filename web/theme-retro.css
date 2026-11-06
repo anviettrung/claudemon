@@ -1,0 +1,393 @@
+/* Theme Retro (Vaporwave / Windows 95): mọi khung là cửa sổ Win95 trên nền hoàng hôn neon.
+   Bật khi <html data-style="retro">; sáng / tối theo data-scheme. Chỉ đổi lớp hiển thị, không đổi bố cục.
+   Nguyên tắc: nội dung chat luôn trên nền đặc (trắng / tím than), chữ đạt tương phản ≥ 4.5:1;
+   neon chỉ cho nền trang, viền, mảng màu lớn. Không blur, không backdrop-filter. */
+
+@font-face { font-family: "VT323"; font-display: swap; src: url("./fonts/vt323-vietnamese.woff2") format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+@font-face { font-family: "VT323"; font-display: swap; src: url("./fonts/vt323-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "VT323"; font-display: swap; src: url("./fonts/vt323-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* ---------- Token ---------- */
+:root[data-style="retro"] {
+  --rk: 0;
+  --radius: 0px;
+  --font-ui: Tahoma, "MS Sans Serif", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --font-title: "VT323", "Lucida Console", monospace;
+  --mono: "Cascadia Mono", Consolas, "Lucida Console", "Courier New", monospace;
+
+  --win-face: #c0c0c0;
+  --win-hi: #dfdfdf;
+  --win-light: #ffffff;
+  --win-shadow: #808080;
+  --win-dark: #0a0a0a;
+  --title-from: #000080;
+  --title-to: #1084d0;
+  --title-text: #ffffff;
+  --select: #000080;
+  --select-text: #ffffff;
+  --neon-pink: #ff71ce;
+  --neon-cyan: #01cdfe;
+  --neon-purple: #b967ff;
+  --tooltip: #ffffe1;
+  --dos-bg: #000000;
+  --dos-text: #c0c0c0;
+  --sunset: linear-gradient(180deg, #2d1b69 0%, #6b2fa8 32%, #ff71ce 62%, #ffb86c 100%);
+  --sun: radial-gradient(circle at 50% 62%, #fff27a 0, #ffb86c 9%, #ff71ce 17%, transparent 17.3%);
+  --grid: rgb(1 205 254 / .75);
+
+  --bg: #ffffff;
+  --side: var(--win-face);
+  --panel: #ffffff;
+  --text: #000000;
+  --muted: #3c3c3c;
+  --line: #808080;
+  --accent: #000080;
+  --accent-text: #ffffff;
+  --link: #0000ee;
+  --user-bubble: #ffe3f5;
+  --code-bg: #ececec;
+  --warn-bg: var(--tooltip);
+  --warn-text: #000000;
+  --ok: #004f00;
+  --busy: #703800;
+  --ask: #8a0000;
+  /* Nút lựa chọn trong câu hỏi: khác màu nền hộp thoại (--win-face) và nền hộp lõm (--panel) */
+  --opt-bg: #e4e4e4;
+  --opt-hover: #f2f2f2;
+
+  /* Viền Win95: nổi (nút, cửa sổ), lõm (ô nhập, vùng nội dung), đang bấm */
+  --bevel-out: inset -1px -1px var(--win-dark), inset 1px 1px var(--win-light), inset -2px -2px var(--win-shadow), inset 2px 2px var(--win-hi);
+  --bevel-in: inset -1px -1px var(--win-light), inset 1px 1px var(--win-shadow), inset -2px -2px var(--win-hi), inset 2px 2px var(--win-dark);
+  --bevel-press: inset -1px -1px var(--win-light), inset 1px 1px var(--win-dark), inset -2px -2px var(--win-hi), inset 2px 2px var(--win-shadow);
+  --window: inset -1px -1px var(--win-dark), inset 1px 1px var(--win-hi), inset -2px -2px var(--win-shadow), inset 2px 2px var(--win-light);
+}
+:root[data-style="retro"][data-scheme="dark"] {
+  /* Bản đêm: khung tím than, nội dung nền tối, neon làm điểm nhấn */
+  --win-face: #2e2942;
+  --win-hi: #433c5e;
+  --win-light: #6a6290;
+  --win-shadow: #17141f;
+  --win-dark: #000000;
+  --title-from: #2d1b69;
+  --title-to: #8a3fd1;
+  --select: #ff71ce;
+  --select-text: #000000;
+  --tooltip: #3a3352;
+  --dos-bg: #07060c;
+  --dos-text: #c9c3dc;
+  --sunset: linear-gradient(180deg, #07021a 0%, #1a0f3d 40%, #4a1858 72%, #a3307e 100%);
+  --sun: radial-gradient(circle at 50% 66%, #ffb86c 0, #ff71ce 9%, #b967ff 16%, transparent 16.3%);
+  --grid: rgb(255 113 206 / .55);
+
+  --bg: #15121f;
+  --panel: #15121f;
+  --text: #ece8f6;
+  --muted: #b5adc9;
+  --line: #4a4366;
+  --accent: #ff71ce;
+  --accent-text: #000000;
+  --link: #01cdfe;
+  --user-bubble: #3b1f40;
+  --code-bg: #262037;
+  --warn-text: #ece8f6;
+  --ok: #3ddc84;
+  --busy: #ffb86c;
+  --ask: #ff6b8a;
+  --opt-bg: #3d3659;
+  --opt-hover: #4b4370;
+}
+
+/* ---------- Nền trang: hoàng hôn, mặt trời, lưới phối cảnh (lớp cố định riêng, không animate) ---------- */
+[data-style="retro"] body { background: #2d1b69; }
+[data-style="retro"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--sun), var(--sunset); }
+[data-style="retro"] body::after { content: ""; position: fixed; left: -60%; right: -60%; bottom: 0; height: 42%; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(var(--grid) 2px, transparent 2px), linear-gradient(90deg, var(--grid) 2px, transparent 2px);
+  background-size: 64px 48px; transform: perspective(260px) rotateX(58deg); transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(to top, #000 35%, transparent); mask-image: linear-gradient(to top, #000 35%, transparent); }
+
+/* ---------- Chung: chữ, nút, ô nhập ---------- */
+[data-style="retro"] body { font-size: 15px; }
+[data-style="retro"] :is(.primary-btn, .ghost-btn, .cbtn, .send-btn, .stop-btn, .voice-stop, .new-btn, .folder-btn, .add-path-btn,
+  .model-pill, .time-basis button, .view-switch button, .option, .machine, .activity-pill, .md-table-toggle, .tray-remove,
+  .icon-btn, .ctx-ring, .usage-card, .theme-btn) {
+  background: var(--win-face); color: var(--text); border: 0; box-shadow: var(--bevel-out);
+}
+[data-style="retro"] :is(.primary-btn, .ghost-btn, .cbtn, .send-btn, .stop-btn, .new-btn, .folder-btn, .add-path-btn, .model-pill,
+  .time-basis button, .view-switch button, .option, .machine, .activity-pill, .md-table-toggle, .icon-btn, .ctx-ring, .theme-btn):active {
+  box-shadow: var(--bevel-press); padding-top: 1px; padding-left: 1px;
+}
+[data-style="retro"] :is(button, select, .picker, [role="button"]):focus-visible { outline: 1px dotted var(--text); outline-offset: -5px; }
+[data-style="retro"] :is(.primary-btn, .send-btn) { box-shadow: 0 0 0 1px var(--win-dark), var(--bevel-out); font-weight: 700; }
+[data-style="retro"] :is(.cbtn, .ghost-btn, .icon-btn, .model-pill, .option):hover { background: var(--win-face); color: var(--text); }
+[data-style="retro"] :is(.primary-btn, .send-btn, .cbtn, .ghost-btn, .new-btn):hover { outline: 1px solid var(--neon-pink); outline-offset: -1px; }
+[data-style="retro"] .primary-btn:disabled, [data-style="retro"] .send-btn:disabled { color: var(--win-shadow); text-shadow: 1px 1px var(--win-light); opacity: 1; }
+[data-style="retro"] .cbtn.on, [data-style="retro"] .voice-stop { background: var(--ask); color: #fff; }
+
+/* Ô nhập: lõm, nền nội dung */
+[data-style="retro"] :is(.search, .new-panel select, .new-panel input, .picker, .add-path input, .ask-text input, .mode) {
+  background: var(--panel); color: var(--text); border: 0; box-shadow: var(--bevel-in);
+}
+[data-style="retro"] .mode { background: var(--win-face); box-shadow: var(--bevel-out); }
+
+/* Thanh tiêu đề cửa sổ */
+[data-style="retro"] :is(.side-head, .topbar, .ask h3, .menu-title, .ask-text-label) {
+  background: linear-gradient(90deg, var(--title-from), var(--title-to)); color: var(--title-text);
+}
+
+/* ---------- Bố cục máy tính: hai cửa sổ trên nền hoàng hôn ---------- */
+@media (min-width: 761px) {
+  [data-style="retro"] .app { padding: 10px; gap: 10px; }
+  [data-style="retro"] .sidebar, [data-style="retro"] .main { box-shadow: var(--window), 3px 3px 0 rgb(0 0 0 / .35); }
+}
+[data-style="retro"] .sidebar { background: var(--win-face); border: 0; padding: 3px 6px 6px; }
+[data-style="retro"] .main { background: var(--win-face); padding: 3px; }
+
+/* Cột trái */
+[data-style="retro"] .side-head { margin: 0 -3px 2px; padding: 3px 3px 3px 8px; gap: 6px; min-height: 30px; }
+[data-style="retro"] .brand { font-size: 22px; font-weight: 400; line-height: 1; letter-spacing: .5px; text-shadow: 1px 1px 0 var(--neon-pink); }
+[data-style="retro"] .machine { font-size: 12px; padding: 2px 8px; }
+[data-style="retro"] .activity-pill { color: var(--busy); font-size: 12px; }
+[data-style="retro"] .activity-pill.waiting { color: var(--ask); }
+[data-style="retro"] .activity-pill.on { background: var(--select); color: var(--select-text); box-shadow: var(--bevel-press); }
+[data-style="retro"] .theme-btn { width: 28px; height: 24px; padding: 0; display: grid; place-items: center; flex: none; }
+[data-style="retro"] .theme-btn svg { width: 16px; height: 16px; }
+[data-style="retro"] .new-btn { font-weight: 700; padding: 7px 10px; }
+[data-style="retro"] .new-btn span { background: none; color: var(--text); width: auto; height: auto; font-weight: 700; }
+[data-style="retro"] .view-switch { background: none; gap: 0; padding: 0; }
+[data-style="retro"] .view-switch button { color: var(--text); padding: 6px 4px; }
+[data-style="retro"] .view-switch button.on { background: var(--win-face); box-shadow: var(--bevel-press); font-weight: 700; }
+[data-style="retro"] .time-basis button { color: var(--text); padding: 4px 10px; }
+[data-style="retro"] .time-basis button.on { box-shadow: var(--bevel-press); font-weight: 700; color: var(--text); }
+
+/* Danh sách session: khung lõm nền trắng như Explorer; dòng đang chọn tô màu chọn */
+[data-style="retro"] .session-list { background: var(--panel); box-shadow: var(--bevel-in); margin: 0; padding: 4px; }
+[data-style="retro"] .session:hover { background: color-mix(in srgb, var(--select) 10%, transparent); }
+[data-style="retro"] .session.active { background: var(--select); }
+[data-style="retro"] .session.active :is(.name, .time, .tags, .proj) { color: var(--select-text); }
+[data-style="retro"] .session.active .mbadge { color: var(--select-text); border-color: var(--select-text); }
+[data-style="retro"] .mbadge { border-color: var(--text); color: var(--text); }
+[data-style="retro"] .tags { color: var(--link); }
+[data-style="retro"] .more-btn { color: var(--text); }
+[data-style="retro"] .more-btn:hover { background: var(--select); color: var(--select-text); }
+[data-style="retro"] .session.active .more-btn { color: var(--select-text); }
+[data-style="retro"] .section-head.pinned .mname::before { color: var(--text); }
+[data-style="retro"] .state-dot { box-shadow: 0 0 0 1px var(--win-dark); }
+[data-style="retro"] .state-dot:not(.live, .running, .requires_action, .elsewhere) { box-shadow: none; }
+[data-style="retro"] .state-dot.elsewhere { border: 0; background: var(--tooltip); }
+[data-style="retro"] .state-dot.running, [data-style="retro"] .status-badge.running::before { animation: blink 1s steps(1) infinite; }
+/* Đang chạy: đồng hồ cát thay vòng xoay */
+[data-style="retro"] .session.act-running .state-dot { width: 14px; height: 14px; border: 0; box-shadow: none; background: none; animation: none;
+  display: grid; place-items: center; font-size: 12px; line-height: 1; }
+[data-style="retro"] .session.act-running .state-dot::before { content: "⌛"; }
+[data-style="retro"] .session.act-running, [data-style="retro"] .session.act-waiting { background: none; }
+[data-style="retro"] .session.act-waiting .state-dot { background: var(--ask); }
+[data-style="retro"] .session.act-running .time { color: var(--busy); }
+[data-style="retro"] .session.act-waiting .time { color: var(--ask); }
+/* Dòng đang chọn thắng mọi trạng thái khác (đang chạy, chờ duyệt) */
+[data-style="retro"] .session.active, [data-style="retro"] .session.active:is(.act-running, .act-waiting) { background: var(--select); }
+[data-style="retro"] .session.active :is(.name, .time, .tags, .proj, .more-btn) { color: var(--select-text); }
+
+/* Thẻ hạn mức: khung lõm, thanh tiến trình dạng khối */
+[data-style="retro"] .usage-card:hover { box-shadow: var(--bevel-out); }
+[data-style="retro"] .usage-who, [data-style="retro"] .usage-label { color: var(--text); }
+[data-style="retro"] .usage-bar, [data-style="retro"] .ctx-bar { height: 14px; background: var(--panel); box-shadow: var(--bevel-in); padding: 2px 3px; }
+[data-style="retro"] :is(.usage-bar, .ctx-bar) :is(i, span) { --bar: var(--select); background: repeating-linear-gradient(90deg, var(--bar) 0 7px, transparent 7px 9px) !important; }
+[data-style="retro"] .usage-bar[data-level="mid"] i { --bar: var(--busy); }
+[data-style="retro"] .usage-bar[data-level="high"] i { --bar: var(--ask); }
+
+/* Chân cột trái: thanh trạng thái lõm */
+[data-style="retro"] .conn { background: var(--win-face); color: var(--text); box-shadow: var(--bevel-in); padding: 3px 8px; }
+[data-style="retro"] .conn .dot { box-shadow: 0 0 0 1px var(--win-dark); }
+
+/* ---------- Khung chính ---------- */
+[data-style="retro"] .topbar { border: 0; min-height: 40px; padding: 3px 4px 3px 10px; gap: 6px; }
+[data-style="retro"] .title { font-family: var(--font-title); font-size: 21px; font-weight: 400; line-height: 1.1; }
+[data-style="retro"] .subtitle { color: color-mix(in srgb, var(--title-text) 82%, transparent); }
+[data-style="retro"] .topbar :is(.icon-btn, .ghost-btn) { min-width: 30px; height: 26px; padding: 0 8px; font-size: 14px; line-height: 1; color: var(--text); }
+[data-style="retro"] .topbar .mode { height: 26px; padding: 0 6px; font-size: 13px; }
+[data-style="retro"] .status-badge { background: var(--win-face) !important; box-shadow: var(--bevel-out); font-size: 12px; padding: 1px 7px; }
+[data-style="retro"] .status-badge.running { color: var(--busy); }
+[data-style="retro"] .status-badge.waiting { color: var(--ask); }
+[data-style="retro"] .status-badge.open { color: var(--ok); }
+[data-style="retro"] .warn { border: 1px solid var(--win-dark); margin: 4px 3px 0; }
+
+/* Vùng chat: khung lõm nền nội dung */
+[data-style="retro"] .chat { background: var(--panel); box-shadow: var(--bevel-in); margin: 4px 0 0; }
+[data-style="retro"] .msg-user { background: var(--user-bubble); box-shadow: var(--bevel-in); padding: 9px 14px; }
+[data-style="retro"] .msg-assistant code { background: var(--code-bg); border: 1px solid var(--line); padding: 0 4px; }
+[data-style="retro"] :is(.msg-assistant, .tool) pre { background: var(--dos-bg); color: var(--dos-text); box-shadow: var(--bevel-in); padding: 10px 12px; }
+[data-style="retro"] .msg-assistant pre code { border: 0; padding: 0; background: none; color: inherit; }
+[data-style="retro"] .msg-assistant a { color: var(--link); }
+[data-style="retro"] .thinking { border-left: 2px dotted var(--line); }
+[data-style="retro"] .empty-mark { color: var(--neon-purple); }
+/* Chữ đang stream: con trỏ khối nhấp nháy */
+[data-style="retro"] #streaming.msg-assistant > :last-child::after,
+[data-style="retro"] .typing::after { content: "█"; margin-left: 2px; animation: blink 1s steps(1) infinite; color: var(--text); }
+[data-style="retro"] .typing::before { content: "⌛ "; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Tool: dòng lệnh kiểu DOS */
+[data-style="retro"] .tgroup-head { font-family: var(--mono); font-size: 13px; color: var(--text); }
+[data-style="retro"] .tgroup-head:hover { background: color-mix(in srgb, var(--select) 10%, transparent); }
+[data-style="retro"] .tgroup-text::before { content: "C:\\>"; color: var(--muted); }
+[data-style="retro"] .tgroup-body { border-left: 2px dotted var(--line); }
+[data-style="retro"] .tool { background: var(--panel); border: 1px solid var(--line); }
+[data-style="retro"] .tool > summary { font-family: var(--mono); color: var(--text); }
+[data-style="retro"] .spinner { border-color: var(--line); border-top-color: var(--select); }
+
+/* Thẻ duyệt quyền: hộp thoại Win95 */
+[data-style="retro"] .ask { background: var(--win-face); border: 0; box-shadow: var(--window), 3px 3px 0 rgb(0 0 0 / .35); padding: 3px 3px 10px; }
+[data-style="retro"] .ask h3 { margin: 0 0 8px; padding: 4px 8px; font-size: 14px; }
+[data-style="retro"] .ask h3::before { content: "⚠ "; }
+[data-style="retro"] .ask > :not(h3) { margin-left: 10px; margin-right: 10px; }
+[data-style="retro"] .ask p { color: var(--text); }
+[data-style="retro"] .ask pre { background: var(--panel); color: var(--text); box-shadow: var(--bevel-in); }
+/* Câu hỏi: danh sách lựa chọn là hộp lõm nền nội dung, mỗi lựa chọn là nút nổi màu khác hẳn nền hộp thoại */
+[data-style="retro"] .ask-question .options { background: var(--panel); box-shadow: var(--bevel-in); padding: 6px; gap: 5px; }
+[data-style="retro"] .ask-question .option { background: var(--opt-bg); color: var(--text); box-shadow: var(--bevel-out); }
+[data-style="retro"] .ask-question .option:hover { background: var(--opt-hover); outline: 1px solid var(--neon-pink); outline-offset: -1px; }
+[data-style="retro"] .option.on, [data-style="retro"] .ask-question .option.on { background: var(--select); color: var(--select-text); box-shadow: var(--bevel-press); }
+[data-style="retro"] .option small { color: inherit; opacity: .85; }
+[data-style="retro"] .opt-mark { border-radius: 50%; background: var(--panel); border: 0; box-shadow: var(--bevel-in); }
+[data-style="retro"] .opt-mark.multi { border-radius: 0; }
+[data-style="retro"] .option.on .opt-mark { background: var(--panel); border: 0; }
+[data-style="retro"] .option.on .opt-mark::after { background: var(--text); }
+[data-style="retro"] .option.on .opt-mark.multi::after { background: none; color: var(--text); }
+[data-style="retro"] .qother { background: var(--panel); border: 0; box-shadow: var(--bevel-in); }
+[data-style="retro"] .qhead h3 { flex: 1; margin: 0; }
+[data-style="retro"] .qstep { background: var(--win-face); color: var(--text); border: 0; box-shadow: var(--bevel-out); }
+[data-style="retro"] .qstep.done { color: var(--text); text-decoration: underline; }
+[data-style="retro"] .qstep.cur { background: var(--select); color: var(--select-text); box-shadow: var(--bevel-press); text-decoration: none; }
+[data-style="retro"] .qchip { color: var(--text); border-color: var(--text); }
+[data-style="retro"] .qhint { color: var(--text); }
+[data-style="retro"] .qreview { background: var(--panel); box-shadow: var(--bevel-in); padding: 6px; }
+[data-style="retro"] .qreview-row { background: var(--opt-bg); border: 0; box-shadow: var(--bevel-out); }
+[data-style="retro"] .qreview-q { color: var(--text); opacity: .8; }
+
+/* Ô nhập tin: textarea lõm, hàng nút nổi */
+[data-style="retro"] .composer { background: var(--win-face); padding: 6px 4px 8px; }
+[data-style="retro"] .composer-box { background: none; border: 0; box-shadow: none; padding: 0; }
+[data-style="retro"] .composer-box:focus-within { border: 0; }
+[data-style="retro"] .composer textarea { background: var(--panel); box-shadow: var(--bevel-in); padding: 8px 10px; }
+[data-style="retro"] .composer-box.drop textarea { outline: 2px dashed var(--select); outline-offset: -4px; }
+[data-style="retro"] .composer-box.recording { border: 0; }
+[data-style="retro"] .model-pill { color: var(--text); padding: 6px 8px; }
+[data-style="retro"] .ctx-ring { width: 36px; height: 36px; }
+[data-style="retro"] .ctx-ring[data-level] .ctx-track { stroke: var(--win-shadow); }
+[data-style="retro"] .attach-tray .tray-item { background: var(--panel); border: 0; box-shadow: var(--bevel-in); }
+[data-style="retro"] .slash-menu { background: var(--win-face); border: 0; box-shadow: var(--window), 3px 3px 0 rgb(0 0 0 / .35); }
+[data-style="retro"] .slash-item.on, [data-style="retro"] .slash-item:hover { background: var(--select); color: var(--select-text); }
+[data-style="retro"] .slash-item.on :is(.slash-arg, .slash-desc, .slash-tag), [data-style="retro"] .slash-item:hover :is(.slash-arg, .slash-desc, .slash-tag) { color: inherit; }
+
+/* Menu: menu Win95, mục được chọn tô màu chọn */
+[data-style="retro"] .menu { background: var(--win-face); border: 0; padding: 3px; box-shadow: var(--window), 3px 3px 0 rgb(0 0 0 / .35); }
+[data-style="retro"] .menu-item:hover, [data-style="retro"] .menu-item:focus-visible, [data-style="retro"] .menu-item.on { background: var(--select); color: var(--select-text); }
+[data-style="retro"] .menu-item:hover .mi-sub, [data-style="retro"] .menu-item.on .mi-sub { color: inherit; }
+[data-style="retro"] .menu-item.danger { color: var(--ask); }
+[data-style="retro"] .menu-item.danger:hover { color: var(--select-text); }
+[data-style="retro"] .menu-label { color: var(--text); border-top: 1px solid var(--win-shadow); box-shadow: inset 0 1px var(--win-light); }
+[data-style="retro"] .menu-title { margin: -3px -3px 4px; padding: 6px 10px; }
+[data-style="retro"] .menu-cancel { border-top: 0 !important; box-shadow: var(--bevel-out); margin-top: 6px; color: var(--text); text-align: center; }
+[data-style="retro"] .menu-backdrop { background: rgb(0 0 0 / .45); animation: none; }
+[data-style="retro"] .menu.sheet { animation: none; }
+[data-style="retro"] .ask-text { background: var(--win-face); border: 0; box-shadow: var(--window), 4px 4px 0 rgb(0 0 0 / .4); padding: 3px 3px 12px; }
+[data-style="retro"] .ask-text form > :not(.ask-text-label) { margin: 0 10px; }
+[data-style="retro"] .ask-text-label { padding: 5px 9px; font-weight: 700; }
+
+/* Bảng markdown: tiêu đề cột như nút, dạng thẻ là cửa sổ nhỏ có thanh tiêu đề */
+[data-style="retro"] .md-table-scroll { border: 0; box-shadow: var(--bevel-in); background: var(--panel); padding: 2px; }
+[data-style="retro"] .md-table th { background: var(--win-face); box-shadow: var(--bevel-out); border: 0; }
+[data-style="retro"] .md-table tbody tr:nth-child(even) td { background: none; }
+[data-style="retro"] .md-table td { border-bottom: 1px solid var(--win-hi); }
+[data-style="retro"] .md-table td + td { border-left: 1px solid var(--win-hi); }
+@container (max-width: 600px) {
+  [data-style="retro"] .md-table.cards .md-table-scroll { box-shadow: none; padding: 0; background: none; }
+  [data-style="retro"] .md-table.cards tr { background: var(--win-face); border: 0; box-shadow: var(--window); padding: 0 12px 10px; }
+  [data-style="retro"] .md-table.cards td { border: 0; }
+  [data-style="retro"] .md-table.cards td.ct { margin: 3px -9px 8px; padding: 5px 9px; border: 0;
+    background: linear-gradient(90deg, var(--title-from), var(--title-to)); color: var(--title-text); }
+  [data-style="retro"] .md-table.cards tbody tr td.cb { position: relative; z-index: 1; margin: 3px 0 0 -6px; padding: 5px 4px; line-height: 1.5;
+    font-size: 16px; font-weight: 650; background: none; color: var(--title-text); }
+  [data-style="retro"] .md-table.cards td.cb + td.ct { margin-left: -9px; }
+  [data-style="retro"] .md-table.cards td:not(.ct, .cb) { background: var(--panel); box-shadow: var(--bevel-in); padding: 6px 8px; }
+  [data-style="retro"] .md-table.cards td:not(.ct, .cb) + td:not(.ct, .cb) { margin-top: 6px; }
+  [data-style="retro"] .md-table.cards td::before { color: var(--muted); }
+}
+
+/* Ảnh, tệp */
+[data-style="retro"] :is(.thumb, .attach-image) { border: 0; box-shadow: var(--bevel-in); padding: 2px; }
+[data-style="retro"] .attach { background: var(--win-face); border: 0; box-shadow: var(--window); }
+[data-style="retro"] .attach-file { background: var(--panel); border: 0; box-shadow: var(--bevel-out); }
+
+/* Thanh cuộn Win95 (máy tính) */
+@media (hover: hover) {
+  [data-style="retro"] ::-webkit-scrollbar { width: 16px; height: 16px; }
+  [data-style="retro"] ::-webkit-scrollbar-track { background-color: var(--win-face);
+    background-image: conic-gradient(var(--win-hi) 25%, transparent 0 50%, var(--win-hi) 0 75%, transparent 0); background-size: 2px 2px; }
+  [data-style="retro"] ::-webkit-scrollbar-thumb { background: var(--win-face); box-shadow: var(--bevel-out); }
+  [data-style="retro"] ::-webkit-scrollbar-corner { background: var(--win-face); }
+}
+
+/* ---------- Điện thoại: không có taskbar hay nút _ □ ×; một thanh tiêu đề; nút cao ≥ 40px ---------- */
+@media (max-width: 760px) {
+  [data-style="retro"] .app { padding: 0; }
+  /* Màn danh sách: nền hoàng hôn lộ ra giữa các khối */
+  [data-style="retro"] .sidebar { background: none; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)); box-shadow: none; }
+  [data-style="retro"] .side-head { margin: 0; box-shadow: var(--window); padding: 5px 5px 5px 10px; min-height: 40px; }
+  [data-style="retro"] .side-head .brand { font-size: 26px; }
+  [data-style="retro"] .sidebar > .usage-card, [data-style="retro"] .sidebar > .session-list { box-shadow: var(--window), 3px 3px 0 rgb(0 0 0 / .35); }
+  [data-style="retro"] .sidebar > .usage-card { background: var(--win-face); }
+  [data-style="retro"] .sidebar > .session-list { padding: 6px; }
+  [data-style="retro"] .sidebar > .new-btn { background: var(--win-face); color: var(--text); box-shadow: 0 0 0 1px var(--win-dark), var(--bevel-out); padding: 12px; }
+  [data-style="retro"] .sidebar > .new-btn span { background: none; }
+  [data-style="retro"] .sidebar > .view-switch { background: var(--win-face); box-shadow: var(--window); padding: 3px; }
+  [data-style="retro"] .sidebar > .search-row .search { min-height: 44px; }
+  [data-style="retro"] .sidebar > .search-row .folder-btn { min-width: 48px; }
+  [data-style="retro"] .main { background: var(--win-face); box-shadow: none; padding: 0; }
+  /* Màn chat: cửa sổ nằm trên nền hoàng hôn, chừa một dải nền ở trên cùng đúng màu mép trên (BAR trong theme.ts)
+     để tai thỏ liền màu; thanh tiêu đề Win95 bắt đầu ngay dưới dải này. */
+  [data-style="retro"] .main { border-top: 8px solid #2d1b69; }
+  [data-style="retro"][data-scheme="dark"] .main { border-top-color: #07021a; }
+  [data-style="retro"] .topbar { padding: max(6px, env(safe-area-inset-top)) 6px 6px; min-height: 52px; }
+  [data-style="retro"] .topbar .back-btn { min-width: 40px; height: 36px; font-size: 24px; padding: 0 0 3px; display: grid; place-items: center; }
+  [data-style="retro"] .topbar .top-more { min-width: 40px; height: 36px; }
+  [data-style="retro"] .title { font-size: 22px; }
+  [data-style="retro"] .chat { margin: 0 4px; }
+  [data-style="retro"] .asks { padding: 6px 8px 0; }
+  [data-style="retro"] .composer { padding: 6px 6px max(8px, env(safe-area-inset-bottom)); }
+  [data-style="retro"] :is(.cbtn, .send-btn, .stop-btn) { width: 42px; height: 42px; }
+  [data-style="retro"] .model-pill { min-height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-style="retro"] *, [data-style="retro"] *::before, [data-style="retro"] *::after { animation: none !important; }
+}
+
+/* Thẻ câu hỏi: cả hàng đầu (tiêu đề + số câu) là thanh tiêu đề cửa sổ */
+[data-style="retro"] .ask-question > .qhead { margin: 0 0 8px; padding: 3px 4px 3px 0; background: linear-gradient(90deg, var(--title-from), var(--title-to)); }
+[data-style="retro"] .ask-question > .qhead h3 { background: none; }
+[data-style="retro"] .ask-question .qstep { min-width: 24px; height: 22px; }
+@media (max-width: 760px) { [data-style="retro"] .ask-row.qnav { background: var(--win-face); } }
+
+/* Tahoma chỉ có thường / đậm: chữ đậm dày đặc trong câu hỏi gây mỏi mắt. Tên lựa chọn và câu trả lời để chữ thường,
+   câu hỏi to hơn thay cho in đậm; lựa chọn đang chọn đã nổi bật bằng màu nền. */
+[data-style="retro"] :is(.opt-label, .qreview-a) { font-weight: 400; }
+[data-style="retro"] .question .q { font-weight: 400; font-size: 16px; }
+[data-style="retro"] .option small { font-size: 13px; }
+[data-style="retro"] .toast { background: var(--win-face); border: 0; box-shadow: var(--window), 3px 3px 0 rgb(0 0 0 / .35); }
+
+/* Thanh tiêu đề cửa sổ app (Window Controls Overlay): chữ pixel trên dải tím đặc cùng màu vùng nút _ □ × (theme-color) */
+[data-style="retro"] { --titlebar-bg: #2d1b69; }
+[data-style="retro"][data-scheme="dark"] { --titlebar-bg: #07021a; }
+:root[data-style="retro"] .titlebar { color: #fff; font: 400 19px var(--font-title); letter-spacing: .5px; text-shadow: 1px 1px 0 #000; }
+:root[data-style="retro"] .titlebar img { border-radius: 0; image-rendering: pixelated; }
+
+/* Nút chép */
+[data-style="retro"] .code-copy { background: var(--win-face); color: var(--text); border: 0; border-radius: 0; box-shadow: var(--bevel-out); }
+[data-style="retro"] .code-copy:active { box-shadow: var(--bevel-press); }
+[data-style="retro"] .code-copy.done { color: var(--text); font-weight: 700; }
+[data-style="retro"] .code-lang { color: var(--dos-text); opacity: .75; }
+[data-style="retro"] .msg-copy { border-radius: 0; }

@@ -1,0 +1,6 @@
+* text=auto
+# cmd.exe đọc sai tệp .cmd xuống dòng kiểu LF; PowerShell thì không quan tâm nhưng giữ CRLF cho đồng nhất.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+# Script bash chạy qua sh.exe của Git for Windows sẽ hỏng nếu bị đổi sang CRLF.
+*.sh text eol=lf

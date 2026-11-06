@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f5f4ef">
+  <script>
+    // Đặt theme trước khi trang vẽ (cùng quy tắc với web/theme.ts) để không nháy theme mặc định.
+    (function () {
+      var p = {};
+      try { p = JSON.parse(localStorage.getItem('sessionmon:theme') || '{}') || {}; } catch (e) {}
+      var d = document.documentElement;
+      var st = p.style === 'retro' || p.style === 'aero' ? p.style : 'claude';
+      d.setAttribute('data-style', st);
+      var s = p.scheme === 'light' || p.scheme === 'dark' ? p.scheme : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      d.setAttribute('data-scheme', s);
+      // Màu mép trên / thanh trạng thái (bản sao BAR trong web/theme.ts, xem LUẬT MÉP TRÊN ở đó)
+      var bar = { claude: ['#f5f4ef', '#262624'], retro: ['#2d1b69', '#07021a'], aero: ['#2f9fe6', '#020c1c'] }[st][s === 'dark' ? 1 : 0];
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', bar);
+      // Cửa sổ app (PWA) đang dùng Window Controls Overlay: app tự vẽ thanh tiêu đề (xem .titlebar trong style.css)
+      var wco = navigator.windowControlsOverlay;
+      if (wco && wco.visible) d.classList.add('wco');
+      // Khoá zoom cả trang trên điện thoại: iOS có lúc bỏ qua user-scalable=no, nên chặn luôn cử chỉ pinch của Safari.
+      // Chỗ cần phóng to (xem ảnh) tự xử lý bằng pointer events nên không bị ảnh hưởng.
+      ['gesturestart', 'gesturechange'].forEach(function (t) {
+        document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false });
+      });
+    })();
+  </script>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SessionMon">
+  <title>SessionMon</title>
+  <link rel="manifest" href="./public/manifest.webmanifest">
+  <link rel="icon" href="./public/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./public/apple-touch-icon.png">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./theme-retro.css">
+  <link rel="stylesheet" href="./theme-aero.css">
+</head>
+<body>
+  <div class="titlebar" aria-hidden="true"><img src="./public/icon-192.png" alt=""><span>SessionMon</span></div>
+  <div class="app" id="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="side-head">
+        <div class="brand">SessionMon</div>
+        <button class="activity-pill" id="activityPill" type="button" hidden></button>
+        <div class="machine" id="machine" title="Máy đang kết nối">…</div>
+        <button class="icon-btn theme-btn" id="themeBtn" type="button" title="Giao diện" aria-label="Giao diện" aria-haspopup="menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg>
+        </button>
+        <button class="icon-btn theme-btn sys-btn" id="sysBtn" type="button" title="Hệ thống" aria-label="Hệ thống" aria-haspopup="menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+      <button class="usage-card" id="usageCard" type="button" hidden></button>
+      <button class="new-btn" id="newBtn" type="button">
+        <span aria-hidden="true">＋</span> Session mới
+      </button>
+      <div class="search-row">
+        <input class="search" id="search" type="search" placeholder="Tìm session, hoặc #nhãn…" autocomplete="off">
+        <button class="icon-btn folder-btn" id="newFolderBtn" type="button" title="Thư mục mới" aria-label="Thư mục mới">＋▭</button>
+        <button class="icon-btn folder-btn select-btn" id="selectBtn" type="button" title="Chọn nhiều session để xoá hoặc chuyển thư mục" aria-label="Chọn nhiều" aria-pressed="false">☑</button>
+      </div>
+      <div class="view-switch" id="viewSwitch" role="tablist" aria-label="Cách xếp danh sách">
+        <button type="button" role="tab" data-view="machine">Máy</button>
+        <button type="button" role="tab" data-view="project">Dự án</button>
+        <button type="button" role="tab" data-view="time">Thời gian</button>
+      </div>
+      <div class="time-basis" id="timeBasis" hidden>
+        <button type="button" data-basis="active">Hoạt động gần đây</button>
+        <button type="button" data-basis="created">Ngày tạo</button>
+      </div>
+      <nav class="session-list" id="sessionList" aria-label="Danh sách session"></nav>
+      <div class="select-bar" id="selectBar" hidden>
+        <span class="select-count" id="selectCount"></span>
+        <button class="ghost-btn" id="selOld" type="button" title="Chọn session không hoạt động quá X ngày rồi xoá">Cũ hơn…</button>
+        <button class="ghost-btn" id="selMore" type="button" aria-haspopup="menu">Sắp xếp…</button>
+        <button class="ghost-btn danger-btn" id="selDelete" type="button">Xoá</button>
+        <button class="primary-btn" id="selDone" type="button">Xong</button>
+      </div>
+      <div class="conn" id="conn"><span class="dot"></span><span id="connText">Đang kết nối…</span><span class="sync pending" id="sync"></span></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn back-btn" id="backBtn" type="button" aria-label="Về danh sách session">‹</button>
+        <button class="icon-btn side-toggle desk-only" id="sideToggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Ẩn thanh bên (Ctrl+B)" aria-label="Ẩn thanh bên">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9.5 4.5v15"/></svg>
+        </button>
+        <div class="title-wrap">
+          <div class="title-line"><span class="title" id="title">Chọn một session</span><span class="status-badge" id="statusBadge" hidden></span></div>
+          <div class="subtitle" id="subtitle"></div>
+        </div>
+        <select class="mode desk-only" id="mode" title="Chế độ quyền" hidden></select>
+        <button class="ghost-btn desk-only" id="closeBtn" type="button" hidden title="Tắt tiến trình của session (lịch sử vẫn giữ)">Đóng</button>
+        <button class="icon-btn top-more" id="topMoreBtn" type="button" hidden aria-label="Tuỳ chọn session">⋯</button>
+      </header>
+
+      <div class="warn" id="warn" hidden>Session này có thể đang mở ở nơi khác (Claude desktop hoặc CLI). Chạy song song hai nơi có thể làm rối lịch sử.</div>
+
+      <section class="chat" id="chat" aria-live="polite">
+        <div class="empty" id="empty">
+          <div class="empty-mark">✦</div>
+          <p>Chọn một session bên trái, hoặc mở session mới.</p>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="new-panel" id="newPanel" hidden>
+          <div class="empty-mark" aria-hidden="true">✦</div>
+          <h2>Session mới</h2>
+          <div class="new-fields">
+            <label class="field">
+              <span class="field-label">Máy</span>
+              <select id="newMachine"></select>
+            </label>
+            <div class="field">
+              <span class="field-label" id="cwdLabel">Thư mục làm việc</span>
+              <div class="path-row">
+                <button type="button" class="picker" id="newCwdBtn" aria-labelledby="cwdLabel" aria-haspopup="menu">
+                  <span class="picker-name" id="newCwdName">Chọn thư mục</span>
+                  <span class="picker-path" id="newCwdPath"></span>
+                  <span class="picker-chev" aria-hidden="true">▾</span>
+                </button>
+                <button type="button" class="icon-btn add-path-btn" id="addPathBtn" title="Thêm đường dẫn" aria-label="Thêm đường dẫn">＋</button>
+              </div>
+              <div class="add-path" id="addPathRow" hidden>
+                <input id="addPathInput" placeholder="Dán đường dẫn, vd D:\Projects\du-an" autocomplete="off" autocapitalize="off" spellcheck="false">
+                <button type="button" class="primary-btn" id="addPathSave">Thêm</button>
+              </div>
+              <p class="form-error" id="addPathError" hidden></p>
+            </div>
+          </div>
+          <p class="new-hint">Chế độ quyền, model và effort chọn ở nút cạnh nút gửi. Ảnh, tệp và giọng nói dùng như trong session.</p>
+          <p class="form-error" id="newError" hidden></p>
+        </div>
+      </section>
+
+      <div class="asks" id="asks"></div>
+
+      <form class="composer" id="composer" hidden>
+        <div class="slash-menu" id="slashMenu" role="listbox" aria-label="Lệnh" hidden></div>
+        <div class="composer-box" id="composerBox">
+          <div class="attach-tray" id="attachTray" hidden></div>
+          <textarea id="input" rows="1" placeholder="Nhắn cho Claude…" autocomplete="off"></textarea>
+          <div class="voice-bar" id="voiceBar" hidden>
+            <button class="cbtn" id="voiceCancel" type="button" aria-label="Huỷ ghi âm" title="Huỷ (bỏ chữ vừa nói)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            <span class="voice-live" aria-live="polite"><span class="voice-dot" aria-hidden="true"></span><span class="voice-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span id="voiceText">Hãy nói…</span></span>
+            <span class="voice-time" id="voiceTime">0:00</span>
+            <button class="voice-stop" id="voiceStop" type="button" aria-label="Dừng ghi âm" title="Dừng ghi âm (giữ chữ để sửa)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+            </button>
+            <button class="send-btn" id="voiceSend" type="button" aria-label="Dừng và gửi" title="Dừng và gửi">↑</button>
+          </div>
+          <div class="composer-row">
+            <button class="cbtn" id="attachBtn" type="button" aria-label="Đính kèm tệp hoặc ảnh" title="Đính kèm (hoặc dán / kéo thả ảnh)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <button class="cbtn slash-btn" id="slashBtn" type="button" aria-label="Chèn lệnh /" title="Lệnh (/)">/</button>
+            <button class="cbtn" id="micBtn" type="button" aria-label="Nói để nhập chữ" title="Nói để nhập chữ" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+            </button>
+            <span class="row-spacer"></span>
+            <button class="model-pill" id="modelBtn" type="button" aria-haspopup="menu" title="Đổi model và effort"><span id="modelLabel">Model</span><span aria-hidden="true">▾</span></button>
+            <button class="ctx-ring" id="ctxBtn" type="button" aria-label="Mức dùng context" hidden>
+              <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="ctx-track" cx="18" cy="18" r="15"/><circle class="ctx-fill" id="ctxFill" cx="18" cy="18" r="15"/></svg>
+            </button>
+            <button class="stop-btn" id="stopBtn" type="button" aria-label="Dừng lượt đang chạy" title="Dừng lượt đang chạy" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg></button>
+            <button class="send-btn" id="sendBtn" type="submit" aria-label="Gửi">↑</button>
+          </div>
+        </div>
+        <input type="file" id="fileInput" multiple hidden>
+      </form>
+
+      <section class="tasks-page" id="tasksPage" aria-label="Task của dự án" hidden></section>
+    </main>
+  </div>
+
+
+  <script type="module" src="./app.ts"></script>
+</body>
+</html>

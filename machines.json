@@ -1,0 +1,13 @@
+{
+  "_doc": "Danh sách máy cho SessionMon. owner = email tài khoản Tailscale của bạn (chỉ tài khoản này vào được). computer = $env:COMPUTERNAME, host = tên máy trong tailnet (install.ps1 tự đặt), name = tên ngắn hiện trên giao diện. Không chứa bí mật.",
+  "owner": "you@example.com",
+  "port": 7420,
+  "wakeup": {
+    "_doc": "Tự mở lại cửa sổ 5 giờ của Claude (src/wakeup.ts). dailyResetAt = giờ muốn reset mỗi ngày; không mở cửa sổ mới từ quietFrom tới dailyResetAt - windowHours. Bật bằng enabled: true.",
+    "claude": { "enabled": false, "dailyResetAt": "10:30", "quietFrom": "00:00", "windowHours": 5 }
+  },
+  "machines": [
+    { "name": "PC1", "computer": "DESKTOP-XXXXXXX", "host": "pc1" },
+    { "name": "PC2", "computer": "DESKTOP-YYYYYYY", "host": "pc2" }
+  ]
+}
