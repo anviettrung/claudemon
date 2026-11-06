@@ -1,12 +1,12 @@
-// Chụp màn hình giao diện SessionMon (thường là bản xem trước scripts/ui-preview.ts) bằng Chrome headless qua DevTools
+// Chụp màn hình giao diện ClaudeMon (thường là bản xem trước scripts/ui-preview.ts) bằng Chrome headless qua DevTools
 // Protocol: giả lập đúng cỡ điện thoại, sáng / tối, từng theme.
 //   bun run scripts/ui-shots.ts [thư mục ra] [url]
-// Mặc định: url http://127.0.0.1:7430/#Z/s1, thư mục ra %TEMP%\sessionmon-shots.
+// Mặc định: url http://127.0.0.1:7430/#Z/s1, thư mục ra %TEMP%\claudemon-shots.
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-const out = process.argv[2] ?? join(tmpdir(), 'sessionmon-shots');
+const out = process.argv[2] ?? join(tmpdir(), 'claudemon-shots');
 const url = process.argv[3] ?? 'http://127.0.0.1:7430/#Z/s1';
 mkdirSync(out, { recursive: true });
 
@@ -15,7 +15,7 @@ const chrome = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Pro
 if (!chrome) throw new Error('Không thấy Chrome hay Edge');
 const dbg = 9339;
 const proc = Bun.spawn([chrome, '--headless=new', '--disable-gpu', '--hide-scrollbars', `--remote-debugging-port=${dbg}`,
-  `--user-data-dir=${join(tmpdir(), 'sessionmon-shots-profile')}`, 'about:blank'], { stdout: 'ignore', stderr: 'ignore' });
+  `--user-data-dir=${join(tmpdir(), 'claudemon-shots-profile')}`, 'about:blank'], { stdout: 'ignore', stderr: 'ignore' });
 
 let page: { webSocketDebuggerUrl: string } | undefined;
 for (let i = 0; i < 50 && !page; i++) {
@@ -56,7 +56,7 @@ for (const [dname, dev] of Object.entries(devices)) {
       await cdp('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] });
       await cdp('Page.navigate', { url });
       await Bun.sleep(400);
-      await js(`localStorage.setItem('sessionmon:theme', JSON.stringify({ style: '${theme}', scheme: 'auto' }))`);
+      await js(`localStorage.setItem('claudemon:theme', JSON.stringify({ style: '${theme}', scheme: 'auto' }))`);
       await cdp('Page.reload');
       await Bun.sleep(1500);
       const shots = dev.mobile ? ['chat', 'list'] : ['chat'];

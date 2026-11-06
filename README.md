@@ -1,6 +1,6 @@
-# SessionMon
+# ClaudeMon
 
-SessionMon là bảng điều khiển các session Claude Code trên mọi máy của mình (các PC khai trong `machines.json`, cùng điện thoại).
+ClaudeMon là bảng điều khiển các session Claude Code trên mọi máy của mình (các PC khai trong `machines.json`, cùng điện thoại).
 Ngồi ở một máy vẫn mở, chat, duyệt quyền và đóng được session trên máy khác, đồng thời sắp xếp session vào
 thư mục, nhãn và ghim theo ý mình.
 
@@ -8,12 +8,12 @@ Chỉ chạy trên **Windows**. Các PC và điện thoại nối với nhau b�
 
 ## Cài
 
-Mỗi người một kho riêng (private): SessionMon ghi cách sắp xếp session lên nhánh `sessionmon-library` của chính kho
+Mỗi người một kho riêng (private): ClaudeMon ghi cách sắp xếp session lên nhánh `claudemon-library` của chính kho
 này, và nút *Khởi động lại agent* kéo bản mới từ kho này.
 
 1. Trên GitHub tạo kho mới từ kho này (**Use this template** → Private), clone về PC, nên cùng đường dẫn trên mọi máy:
    ```powershell
-   git clone https://github.com/<you>/sessionmon.git D:\Projects\sessionmon
+   git clone https://github.com/<you>/claudemon.git D:\Projects\claudemon
    ```
    Máy phải push được lên kho (Git Credential Manager tự hỏi đăng nhập ở lần đầu).
 2. Sửa `machines.json`: `owner` = email tài khoản Tailscale của bạn (chỉ tài khoản này mở được trang qua tailnet),
@@ -27,16 +27,16 @@ này, và nút *Khởi động lại agent* kéo bản mới từ kho này.
 
 1. Tìm Bun, chưa có thì cài bằng winget.
 2. `bun install` khi `bun.lock` đổi.
-3. Đăng ký Scheduled Task **SessionMon Agent** chạy lúc đăng nhập, qua `conhost --headless` nên không có cửa sổ.
+3. Đăng ký Scheduled Task **ClaudeMon Agent** chạy lúc đăng nhập, qua `conhost --headless` nên không có cửa sổ.
    Task chạy `scripts/run-agent.ps1`: bật agent, ghi `agent.log` / `agent.out.log` / `agent.err.log`, agent thoát
    thì 5 giây sau bật lại.
 4. Kho sang commit khác thì khởi động lại agent, trừ khi đang có session chạy (để lần cài sau).
 5. Tailscale đã đăng nhập thì đặt tên máy theo `machines.json` và bật `tailscale serve --bg 7420`.
 
-Chạy tay để phát triển (tắt task trước: `Stop-ScheduledTask 'SessionMon Agent'`):
+Chạy tay để phát triển (tắt task trước: `Stop-ScheduledTask 'ClaudeMon Agent'`):
 
 ```powershell
-cd tools\sessionmon
+cd tools\claudemon
 bun run dev          # http://127.0.0.1:7420, tự nạp lại khi sửa mã
 ```
 
@@ -44,9 +44,9 @@ Cài thành app: mở `http://127.0.0.1:7420` bằng Chrome, bấm biểu tượ
 thanh tiêu đề theo theme; đã có app thì `install.ps1` gỡ shortcut `chrome --app` cũ và không tạo lại.
 
 Khởi động lại agent (kéo code mới trước): trên máy tính, nút bánh răng (Hệ thống) → **Khởi động lại agent <máy>**. Không mở được app thì
-chạy tay: `Stop-ScheduledTask 'SessionMon Agent'`, tắt tiến trình `run-agent.ps1` và `bun ... src/agent.ts`, rồi `Start-ScheduledTask 'SessionMon Agent'`.
+chạy tay: `Stop-ScheduledTask 'ClaudeMon Agent'`, tắt tiến trình `run-agent.ps1` và `bun ... src/agent.ts`, rồi `Start-ScheduledTask 'ClaudeMon Agent'`.
 
-Biến môi trường: `SESSIONMON_PORT` đổi cổng, `SESSIONMON_DEV=1` bật chế độ dev của Bun.
+Biến môi trường: `CLAUDEMON_PORT` đổi cổng, `CLAUDEMON_DEV=1` bật chế độ dev của Bun.
 
 Kiểm thử từ đầu đến cuối trên các agent đang chạy (mọi máy trong `machines.json`), chạy session Claude thật nên
 tốn một ít lượt dùng:
@@ -59,8 +59,8 @@ bun run scripts/smoke.ts basic security pwa     # chỉ các nhóm không gọi 
 Nhóm: `basic` (danh sách, cảnh báo nơi khác), `security` (tài khoản/Origin lạ, đầu vào sai), `session` (từ chối,
 cho phép, AskUserQuestion, acceptEdits, dừng, đóng, chạy tiếp), `remote` (điều khiển máy khác qua tailnet),
 `library` (sắp xếp và đồng bộ hai chiều), `pwa` (manifest, icon, service worker, HTTPS). Máy khác dùng thư mục
-`SESSIONMON_REMOTE_CWD` (mặc định `D:\Projects\sessionmon`, đặt theo chỗ kho nằm trên máy kia).
-Gỡ: `Unregister-ScheduledTask 'SessionMon Agent' -Confirm:$false` và `tailscale serve --https=443 off`.
+`CLAUDEMON_REMOTE_CWD` (mặc định `D:\Projects\claudemon`, đặt theo chỗ kho nằm trên máy kia).
+Gỡ: `Unregister-ScheduledTask 'ClaudeMon Agent' -Confirm:$false` và `tailscale serve --https=443 off`.
 
 | Tệp | Vai trò |
 |---|---|
@@ -69,7 +69,7 @@ Gỡ: `Unregister-ScheduledTask 'SessionMon Agent' -Confirm:$false` và `tailsca
 | `src/normalize.ts` | Đổi tin nhắn Claude Code sang dạng gọn cho giao diện |
 | `src/wakeup.ts` | Hạn mức Claude và tự đánh thức cửa sổ 5 giờ |
 | `src/push.ts`, `web/push.ts` | Thông báo đẩy (Web Push) khi session xong lượt hoặc cần duyệt |
-| `src/library.ts` | Cách sắp xếp session, đồng bộ qua nhánh git `sessionmon-library` |
+| `src/library.ts` | Cách sắp xếp session, đồng bộ qua nhánh git `claudemon-library` |
 | `src/protocol.ts` | Kiểu dữ liệu chung giữa agent và giao diện |
 | `web/` | Giao diện chat (Bun tự đóng gói khi chạy) |
 | `web/htmlview.ts` | Xem báo cáo HTML ngay trong app (iframe sandbox), kèm nút mở bằng trình duyệt |
@@ -84,7 +84,7 @@ Gỡ: `Unregister-ScheduledTask 'SessionMon Agent' -Confirm:$false` và `tailsca
 | Các máy nối với nhau thế nào | Tailscale | Không cần mở port hay thuê server. Mỗi máy và điện thoại cài Tailscale một lần, cùng một tài khoản. |
 | Giao diện chạy ở đâu | Web app + PWA | Mở trên trình duyệt ở PC hay điện thoại đều được, cài lên màn hình chính như một app. |
 | AI chạy bằng gì | Claude Code + gói đăng ký | Điều khiển Claude Code có sẵn trên từng máy, dùng luôn lượt đăng nhập hiện có. Session nằm ở `~/.claude/projects`, nên CLI và Claude desktop mở tiếp được. |
-| Cách sắp xếp session lưu ở đâu | Trong chính kho này (git), nhánh riêng `sessionmon-library` | Không cần server. Máy đang mở thấy ngay; máy khác thấy sau tối đa 1 phút. |
+| Cách sắp xếp session lưu ở đâu | Trong chính kho này (git), nhánh riêng `claudemon-library` | Không cần server. Máy đang mở thấy ngay; máy khác thấy sau tối đa 1 phút. |
 
 ## Kiến trúc
 
@@ -93,17 +93,17 @@ Gỡ: `Unregister-ScheduledTask 'SessionMon Agent' -Confirm:$false` và `tailsca
         │  HTTPS + WebSocket, chỉ trong tailnet
         ▼
  ┌─────────────────┐  tailnet  ┌─────────────────┐
- │ sessionmon-agent A│◄─────────►│ sessionmon-agent B│
+ │ claudemon-agent A│◄─────────►│ claudemon-agent B│
  └────────┬────────┘           └────────┬────────┘
           │ Agent SDK                   │ Agent SDK
           ▼                             ▼
      Claude Code                   Claude Code
      ~/.claude/projects            ~/.claude/projects
           │                             │
-          └─ nhánh sessionmon-library (git) ───────┘
+          └─ nhánh claudemon-library (git) ───────┘
 ```
 
-**sessionmon-agent** là một daemon nhỏ viết bằng TypeScript, chạy trên Bun, có mặt trên mỗi máy:
+**claudemon-agent** là một daemon nhỏ viết bằng TypeScript, chạy trên Bun, có mặt trên mỗi máy:
 
 - Đọc `~/.claude/projects/*/*.jsonl` để biết máy có những session nào: thư mục làm việc, tiêu đề, lần cuối hoạt động.
 - Mở session mới hoặc chạy tiếp session cũ (`resume`) qua Claude Agent SDK, rồi đẩy luồng tin nhắn ra WebSocket.
@@ -111,7 +111,7 @@ Gỡ: `Unregister-ScheduledTask 'SessionMon Agent' -Confirm:$false` và `tailsca
 - Cảnh báo, không khoá: nếu tệp `.jsonl` của session vừa được nơi khác ghi vào (Claude desktop, CLI) trong vài
   phút gần đây, giao diện hiện dải cảnh báo "Session có thể đang mở ở nơi khác" trước khi gửi tin. Người dùng
   vẫn gửi được; chạy song song hai nơi có thể làm rối lịch sử.
-- Cấp cho mọi session tool `send_user_file` (MCP `sessionmon` chạy ngay trong agent): Claude gửi ảnh, video, tệp trên
+- Cấp cho mọi session tool `send_user_file` (MCP `claudemon` chạy ngay trong agent): Claude gửi ảnh, video, tệp trên
   máy cho người dùng, hiện ngay trong khung chat như `SendUserFile` của app Claude (tool đó không có khi chạy qua
   Agent SDK). Tool được cho phép sẵn, không hỏi quyền; agent chỉ phục vụ tệp có tên trong lịch sử session.
 - Gặp yêu cầu duyệt quyền (`canUseTool`) thì hiện thành thẻ Cho phép / Từ chối trên giao diện, bất kể đang mở
@@ -147,7 +147,7 @@ Gỡ: `Unregister-ScheduledTask 'SessionMon Agent' -Confirm:$false` và `tailsca
   thị, đồng bộ giữa các máy), chuyển cả nhóm vào thư mục, xoá mọi session trong nhóm. Nút ⋯ ở thư mục tự đặt: lên
   trên / xuống dưới, đổi tên, xoá thư mục, xoá mọi session bên trong.
 - Tên session: session chưa có tên (tự đặt hoặc do Claude Code sinh) hiện câu hỏi đầu rút gọn (câu đầu, tối đa 50 ký tự).
-  Session mới mở từ SessionMon có tên đó ngay lúc gửi; Claude Code tự sinh tên gọn hơn (`ai-title`) vài giây sau, danh
+  Session mới mở từ ClaudeMon có tên đó ngay lúc gửi; Claude Code tự sinh tên gọn hơn (`ai-title`) vài giây sau, danh
   sách làm mới lúc 4, 12 và 30 giây để hiện sớm.
 - Xoá session: agent của máy giữ session đóng tiến trình (nếu đang chạy) rồi chuyển `<id>.jsonl` và thư mục `<id>/`
   trong `~/.claude/projects` vào **Thùng rác** của máy đó, nên khôi phục được.
@@ -162,7 +162,7 @@ Gỡ: `Unregister-ScheduledTask 'SessionMon Agent' -Confirm:$false` và `tailsca
   (cửa sổ Windows 95 trên nền hoàng hôn vaporwave, chữ tiêu đề VT323, giấy phép OFL trong `web/fonts/`), mỗi kiểu có
   Sáng / Tối / Theo máy. Màu chữ đạt tương phản ≥ 4.5:1 ở cả bốn biến thể.
 - Sửa giao diện: `bun run scripts/ui-preview.ts` (dữ liệu giả, không gọi Claude), rồi `bun run scripts/ui-shots.ts`
-  chụp mọi theme ở cỡ điện thoại và PC vào `%TEMP%\sessionmon-shots`.
+  chụp mọi theme ở cỡ điện thoại và PC vào `%TEMP%\claudemon-shots`.
 
 ## Hạn mức Claude và tự đánh thức cửa sổ 5 giờ
 
@@ -189,9 +189,9 @@ Có hai loại dữ liệu, mỗi loại đồng bộ một kiểu:
 | Dữ liệu | Đường đi | Độ trễ |
 |---|---|---|
 | Trạng thái sống: session nào đang chạy, tin nhắn đang đến | Đi thẳng từ agent qua tailnet | Tức thì |
-| Cách sắp xếp: thư mục, nhãn, ghim, tên đặt lại, dự án, task (kèm ảnh) | Nhánh `sessionmon-library` của kho này | Máy đang mở: tức thì. Máy khác: ≤ 1 phút |
+| Cách sắp xếp: thư mục, nhãn, ghim, tên đặt lại, dự án, task (kèm ảnh) | Nhánh `claudemon-library` của kho này | Máy đang mở: tức thì. Máy khác: ≤ 1 phút |
 
-Cách sắp xếp nằm trong `library.json` trên **nhánh riêng `sessionmon-library`**, không nằm trên `main`:
+Cách sắp xếp nằm trong `library.json` trên **nhánh riêng `claudemon-library`**, không nằm trên `main`:
 
 - Agent đọc và ghi nhánh đó bằng lệnh git cấp thấp (`hash-object`, `mktree`, `commit-tree`, `push`), không đụng
   thư mục làm việc hay nhánh `main`. Nhờ vậy `git pull` trên `main` không bao giờ vướng "thay đổi chưa commit" hay
@@ -218,7 +218,7 @@ Cách sắp xếp nằm trong `library.json` trên **nhánh riêng `sessionmon-l
 - **Thông báo**: menu ◐ → *Thông báo trên thiết bị này* → *Báo khi xong việc / cần duyệt*. Bật rồi thì thiết bị nhận
   thông báo khi session xong lượt (kèm thời gian đã làm), lỗi, cần duyệt quyền, hỏi (AskUserQuestion) hay duyệt kế
   hoạch, kể cả khi đã đóng app. Bấm thông báo mở đúng session. Bấm dừng thì không báo.
-  - iPhone / iPad: phải *Thêm vào màn hình chính* rồi mở SessionMon từ đó (iOS 16.4+) mới bật được.
+  - iPhone / iPad: phải *Thêm vào màn hình chính* rồi mở ClaudeMon từ đó (iOS 16.4+) mới bật được.
   - Đang mở app trên màn hình thì không đẩy; session khác xong / cần duyệt hiện thành thẻ nhỏ trong app, bấm để mở.
   - Thiết bị đăng ký với agent của máy phục vụ trang (khoá VAPID `push.keys.json`, danh sách thiết bị
     `push.subs.json`, cả hai gitignore, riêng từng máy). Agent đó nối WebSocket tới agent các máy khác để báo cả
@@ -228,7 +228,7 @@ Cách sắp xếp nằm trong `library.json` trên **nhánh riêng `sessionmon-l
 ## Session tự do, thanh bên, báo cáo HTML
 
 - **Session tự do** (không thuộc dự án nào): mục đầu tiên trong ô chọn thư mục của Session mới. Agent tạo cho mỗi
-  session một thư mục riêng `~/SessionMon/scratch-workspaces/scratch-<ngày giờ>`, nên tệp nó tạo ra không lẫn nhau.
+  session một thư mục riêng `~/ClaudeMon/scratch-workspaces/scratch-<ngày giờ>`, nên tệp nó tạo ra không lẫn nhau.
   Ở chế độ xem *Dự án*, danh sách bên trái gom chúng (cùng phiên Claude desktop mở không chọn thư mục) vào mục
   **✦ Session tự do**; ở *Máy* và *Thời gian* chúng nằm chung với session khác.
 - **Ẩn / hiện thanh bên** (máy tính): nút cạnh tiêu đề session hoặc `Ctrl+B`; nhớ trên thiết bị đó.
@@ -238,7 +238,7 @@ Cách sắp xếp nằm trong `library.json` trên **nhánh riêng `sessionmon-l
 
 ## Bảo mật
 
-sessionmon-agent chạy được mọi lệnh trên máy, nên:
+claudemon-agent chạy được mọi lệnh trên máy, nên:
 
 - Agent chỉ nghe ở `127.0.0.1:7420`. Máy khác vào qua `tailscale serve`, nó cấp HTTPS (điều kiện để cài PWA)
   và chuyển tiếp vào cổng đó; không bao giờ nghe ở `0.0.0.0`.
@@ -280,14 +280,14 @@ tailscale serve --bg 7420          # HTTPS https://pc1.<tailnet>.ts.net -> http:
 1. ✅ **Một máy.** Agent liệt kê session, mở mới, chạy tiếp, chat có streaming, duyệt quyền (kể cả câu hỏi
    AskUserQuestion), dừng lượt đang chạy, đổi chế độ quyền và đóng session. Web app chạy ở `localhost`.
 2. ✅ **Nhiều máy.** Dùng `machines.json`. Giao diện gộp session từ mọi agent, có `tailscale serve` và PWA cho điện thoại.
-3. ✅ **Sắp xếp.** Thư mục, nhãn, ghim và đổi tên, đồng bộ qua nhánh `sessionmon-library`.
+3. ✅ **Sắp xếp.** Thư mục, nhãn, ghim và đổi tên, đồng bộ qua nhánh `claudemon-library`.
 4. ✅ **Cài đặt.** `install.ps1` cài thư viện, rồi đăng ký Scheduled Task để agent tự chạy lúc đăng nhập, không mở cửa sổ.
 
 ## Việc cần làm tay
 
 - Cài và đăng nhập Tailscale theo mục "Triển khai Tailscale" (cần trước bước 2).
 - Tài liệu Agent SDK ghi: trừ khi được duyệt trước, Anthropic không cho bên thứ ba *cung cấp* đăng nhập claude.ai
-  hay hạn mức của gói cho sản phẩm của họ, kể cả agent viết bằng Agent SDK. SessionMon là công cụ riêng, chỉ chủ tài
+  hay hạn mức của gói cho sản phẩm của họ, kể cả agent viết bằng Agent SDK. ClaudeMon là công cụ riêng, chỉ chủ tài
   khoản dùng trên máy của mình, và chạy đúng bản `claude` đã cài (`pathToClaudeCodeExecutable`). Nếu muốn chắc chắn
   thì đặt `ANTHROPIC_API_KEY` cho tiến trình agent: SDK dùng API key thay cho gói, mã không đổi gì.
 

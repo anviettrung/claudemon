@@ -1,4 +1,4 @@
-// Giao diện SessionMon: nối tới agent của mọi máy trong machines.json, gộp session theo máy.
+// Giao diện ClaudeMon: nối tới agent của mọi máy trong machines.json, gộp session theo máy.
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { htmlViewerOpen, openHtmlViewer } from './htmlview.ts';
@@ -421,7 +421,7 @@ type TimeBasis = 'active' | 'created';
 
 function loadPref<T>(key: string, fallback: T): T {
   try {
-    const v = localStorage.getItem('sessionmon:' + key);
+    const v = localStorage.getItem('claudemon:' + key);
     return v === null ? fallback : (JSON.parse(v) as T);
   } catch {
     return fallback;
@@ -429,7 +429,7 @@ function loadPref<T>(key: string, fallback: T): T {
 }
 function savePref(key: string, v: unknown) {
   try {
-    localStorage.setItem('sessionmon:' + key, JSON.stringify(v));
+    localStorage.setItem('claudemon:' + key, JSON.stringify(v));
   } catch {}
 }
 
@@ -587,7 +587,7 @@ const UNKNOWN_CWD = '(không rõ thư mục)';
 const SCRATCH = 'Session tự do';
 
 // Nhóm theo thư mục làm việc. Session tự do (không thuộc dự án) nằm trong scratch-workspaces/…/scratch-<ngày>: của
-// SessionMon (~/SessionMon/scratch-workspaces) hay của Claude desktop khi mở không chọn thư mục. Gom tất cả về một nhóm.
+// ClaudeMon (~/ClaudeMon/scratch-workspaces) hay của Claude desktop khi mở không chọn thư mục. Gom tất cả về một nhóm.
 const isScratch = (cwd: string) => /[\\/]scratch-workspaces[\\/]/i.test(cwd);
 function cwdGroup(cwd: string): { key: string; name: string } {
   if (!cwd) return { key: '?', name: UNKNOWN_CWD };
@@ -1807,7 +1807,7 @@ function htmlCard(f: FileRef) {
   const view = document.createElement('button');
   view.type = 'button';
   view.className = 'html-card-main';
-  view.title = `Xem trong SessionMon
+  view.title = `Xem trong ClaudeMon
 ${f.path}`;
   view.append(
     Object.assign(document.createElement('span'), { className: 'html-card-icon', textContent: '</>', ariaHidden: 'true' }),
@@ -1889,7 +1889,7 @@ function renderAsks() {
 // Số yêu cầu chờ duyệt trên tiêu đề tab và biểu tượng app.
 function updateBadge() {
   const n = state.asks.size;
-  document.title = `${n ? `(${n}) ` : ''}SessionMon`;
+  document.title = `${n ? `(${n}) ` : ''}ClaudeMon`;
   const nav = navigator as Navigator & { setAppBadge?: (n?: number) => Promise<void>; clearAppBadge?: () => Promise<void> };
   if (n) void nav.setAppBadge?.(n).catch(() => {});
   else void nav.clearAppBadge?.().catch(() => {});
@@ -2323,7 +2323,7 @@ function setupViewport() {
 }
 
 // Máy tính: ẩn / hiện thanh bên để tập trung vào chat. Nút ở thanh trên hoặc Ctrl+B; nhớ trên thiết bị này.
-const SIDE_KEY = 'sessionmon:sideHidden';
+const SIDE_KEY = 'claudemon:sideHidden';
 function setSideHidden(hidden: boolean) {
   $('app').classList.toggle('side-hidden', hidden);
   const btn = $('sideToggle');
@@ -2351,7 +2351,7 @@ function setupSideToggle() {
 }
 
 function goBack() {
-  if (history.state?.sessionmon === 'chat') history.back();
+  if (history.state?.claudemon === 'chat') history.back();
   else closeChat();
 }
 
@@ -2442,7 +2442,7 @@ function setCwd(path: string, scratch = false) {
   newCwd = scratch ? '' : path;
   $('newCwdName').textContent = scratch ? SCRATCH : path ? folderName(path) : 'Chọn thư mục';
   $('newCwdPath').textContent = scratch ? '(không thuộc dự án nào)' : path ? `(${path})` : '';
-  $('newCwdBtn').title = scratch ? 'Mỗi session tự do có một thư mục riêng trong ~/SessionMon/scratch-workspaces' : path;
+  $('newCwdBtn').title = scratch ? 'Mỗi session tự do có một thư mục riêng trong ~/ClaudeMon/scratch-workspaces' : path;
 }
 
 function fillCwds() {
@@ -2939,7 +2939,7 @@ const imgUrl = (sha: string) => `${selfConn()?.base ?? ''}/api/library/image/${s
 function showMain(hash: string) {
   if (isMobile() && !$('app').classList.contains('chat-open')) {
     if (location.hash === hash) history.replaceState(null, '', location.pathname + location.search);
-    history.pushState({ sessionmon: 'chat' }, '', hash);
+    history.pushState({ claudemon: 'chat' }, '', hash);
   } else history.replaceState(history.state, '', hash);
   $('app').classList.add('chat-open');
   syncInert();
@@ -3956,7 +3956,7 @@ async function init() {
     retry: 0,
   }));
   $('machine').textContent = `ở ${info.self.name}`;
-  $('machine').title = `Đang mở SessionMon từ máy ${info.self.name}`;
+  $('machine').title = `Đang mở ClaudeMon từ máy ${info.self.name}`;
   fillModes($('mode'));
   setupTables($('messages'));
   setupCopy(document.body, (msg) => showToast('Không chép được', msg, () => {}));
@@ -4606,7 +4606,7 @@ const isStandalone = () => matchMedia('(display-mode: standalone)').matches || (
 const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const needsBrowserApp = () => isStandalone() && !isDesktopApp() && isIOS();
 
-const BROWSER_KEY = 'sessionmon:browser';
+const BROWSER_KEY = 'claudemon:browser';
 const IOS_BROWSERS: { id: string; label: string; href: (u: URL) => string }[] = [
   { id: 'safari', label: 'Safari', href: (u) => 'x-safari-' + u.href },
   { id: 'chrome', label: 'Chrome', href: (u) => u.href.replace(/^http/, 'googlechrome') },

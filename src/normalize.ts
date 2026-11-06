@@ -98,7 +98,7 @@ export function toBlocks(content: unknown, cwd?: string): Block[] {
       }
       case 'tool_use':
       case 'server_tool_use':
-        if ((c.name === 'SendUserFile' || c.name === 'mcp__sessionmon__send_user_file') && Array.isArray(c.input?.files)) {
+        if ((c.name === 'SendUserFile' || c.name === 'mcp__claudemon__send_user_file') && Array.isArray(c.input?.files)) {
           blocks.push({
             type: 'files',
             toolUseId: c.id,

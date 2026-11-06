@@ -1,5 +1,5 @@
-// Chạy giao diện SessionMon với dữ liệu giả để xem và chụp màn hình khi sửa giao diện, không cần agent thật,
-// không gọi Claude, không đụng ~/.claude hay nhánh sessionmon-library.
+// Chạy giao diện ClaudeMon với dữ liệu giả để xem và chụp màn hình khi sửa giao diện, không cần agent thật,
+// không gọi Claude, không đụng ~/.claude hay nhánh claudemon-library.
 //   bun run scripts/ui-preview.ts            -> http://127.0.0.1:7430
 //   Mở session mẫu: http://127.0.0.1:7430/#A/s1   (s1 có thẻ duyệt quyền đang chờ)
 // Chụp màn hình: scripts/ui-shots.ts.
@@ -11,12 +11,12 @@ const now = Date.now();
 const min = 60_000;
 
 const sessions: SessionSummary[] = [
-  { id: 's1', title: 'Sửa giao diện bảng SessionMon', cwd: 'D:\\Projects\\sessionmon', lastModified: now - 2 * min, createdAt: now - 90 * min, live: true, state: 'requires_action', elsewhere: false, turnStartedAt: now - 47_000 },
+  { id: 's1', title: 'Sửa giao diện bảng ClaudeMon', cwd: 'D:\\Projects\\claudemon', lastModified: now - 2 * min, createdAt: now - 90 * min, live: true, state: 'requires_action', elsewhere: false, turnStartedAt: now - 47_000 },
   { id: 's2', title: 'Tối ưu pathfinding cho map isometric', cwd: 'D:\\Projects\\tower-defense', lastModified: now - 5 * min, createdAt: now - 3 * 60 * min, live: true, state: 'running', elsewhere: false, turnStartedAt: now - 3 * min - 12_000 },
   { id: 's3', title: 'Viết patch notes 1.4.2', cwd: 'D:\\Projects\\tower-defense', lastModified: now - 50 * min, createdAt: now - 26 * 60 * min, live: true, state: 'idle', elsewhere: false },
   { id: 's4', title: 'Shader nước cho level biển', cwd: 'D:\\Projects\\tower-defense', lastModified: now - 26 * 60 * min, live: false, state: 'idle', elsewhere: true },
   { id: 's5', title: 'Dọn ổ đĩa D', cwd: 'C:\\Users\\dev', lastModified: now - 4 * 24 * 60 * min, live: false, state: 'idle', elsewhere: false },
-  { id: 's6', title: 'Hỏi nhanh về thuế TNCN', cwd: 'C:\\Users\\dev\\SessionMon\\scratch-workspaces\\scratch-20261028-091500', lastModified: now - 30 * min, live: false, state: 'idle', elsewhere: false },
+  { id: 's6', title: 'Hỏi nhanh về thuế TNCN', cwd: 'C:\\Users\\dev\\ClaudeMon\\scratch-workspaces\\scratch-20261028-091500', lastModified: now - 30 * min, live: false, state: 'idle', elsewhere: false },
 ];
 
 // Báo cáo HTML mẫu (session s1 gửi bằng send_user_file) để xem thẻ và trình xem HTML.
@@ -37,7 +37,7 @@ const library: Library = {
   paths: {},
   projects: {},
   projectDefs: {
-    p1: { name: 'sessionmon', code: 'SM', roots: [{ machine: 'A', path: 'D:\\Projects\\sessionmon' }, { machine: 'B', path: 'D:\\Projects\\sessionmon' }], order: 0, updatedAt: now },
+    p1: { name: 'claudemon', code: 'SM', roots: [{ machine: 'A', path: 'D:\\Projects\\claudemon' }, { machine: 'B', path: 'D:\\Projects\\claudemon' }], order: 0, updatedAt: now },
     p2: { name: 'Tower Defense', code: 'TD', roots: [{ machine: 'A', path: 'D:\\Projects\\tower-defense' }], order: 1, updatedAt: now },
   },
   tasks: {
@@ -111,7 +111,7 @@ Mã\tViệc\tCông sức
 Lệnh dài cuộn ngang được:
 
 \`\`\`
-bun run scripts/ui-shots.ts "%TEMP%\\sessionmon-shots" "http://127.0.0.1:7430/#Z/s3" --một-tham-số-rất-dài-để-thử-cuộn-ngang-trên-điện-thoại
+bun run scripts/ui-shots.ts "%TEMP%\\claudemon-shots" "http://127.0.0.1:7430/#Z/s3" --một-tham-số-rất-dài-để-thử-cuộn-ngang-trên-điện-thoại
 \`\`\`
 
 Xem thêm [tài liệu Bun](https://bun.sh) nếu cần.`;
@@ -121,8 +121,8 @@ const messages: ChatMessage[] = [
   { id: 'a1', at: now - 9 * min - 4_000, role: 'assistant', blocks: [{ type: 'thinking', text: 'Cần xem md() render bảng thế nào…' }] },
   { id: 'a2', at: now - 9 * min - 20_000, role: 'assistant', blocks: [
     { type: 'tool_use', id: 't1', name: 'Bash', input: { command: 'grep -n "md(" web/app.ts' } },
-    { type: 'tool_use', id: 't2', name: 'Read', input: { file_path: 'D:\\Projects\\sessionmon\\web\\style.css' } },
-    { type: 'tool_use', id: 't3', name: 'Edit', input: { file_path: 'D:\\Projects\\sessionmon\\web\\app.ts', old_string: 'a', new_string: 'b' } },
+    { type: 'tool_use', id: 't2', name: 'Read', input: { file_path: 'D:\\Projects\\claudemon\\web\\style.css' } },
+    { type: 'tool_use', id: 't3', name: 'Edit', input: { file_path: 'D:\\Projects\\claudemon\\web\\app.ts', old_string: 'a', new_string: 'b' } },
   ] },
   { id: 'r1', at: now - 8 * min, role: 'user', blocks: [
     { type: 'tool_result', toolUseId: 't1', text: '1126:function md(text: string): string {', isError: false },
@@ -131,7 +131,7 @@ const messages: ChatMessage[] = [
   ] },
   { id: 'a3', at: now - 7 * min + 10_000, role: 'assistant', blocks: [{ type: 'text', text: md }] },
   { id: 'a4', at: now - 7 * min + 2_000, role: 'assistant', blocks: [{ type: 'files', toolUseId: 't9', caption: 'Báo cáo hiệu năng', files: [
-    { name: 'bao-cao-tuan-43.html', path: 'D:\\Projects\\sessionmon\\reports\\bao-cao-tuan-43.html', url: '/api/file/demo/bao-cao-tuan-43.html', kind: 'html', exists: true },
+    { name: 'bao-cao-tuan-43.html', path: 'D:\\Projects\\claudemon\\reports\\bao-cao-tuan-43.html', url: '/api/file/demo/bao-cao-tuan-43.html', kind: 'html', exists: true },
   ] }] },
   { id: 'u2', at: now - 47_000, role: 'user', blocks: [{ type: 'text', text: 'Ok, push lên đi' }] },
 ];
@@ -230,4 +230,4 @@ Bun.serve({
   },
   development: true,
 });
-console.log(`SessionMon preview: http://127.0.0.1:${port}/#A/s1`);
+console.log(`ClaudeMon preview: http://127.0.0.1:${port}/#A/s1`);

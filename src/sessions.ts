@@ -29,11 +29,11 @@ import type {
 type Emit = (e: ServerEvent) => void;
 type UserContent = SDKUserMessage['message']['content'];
 
-// Tool SessionMon cấp cho mọi session: gửi ảnh, video, tệp cho người dùng xem ngay trong khung chat (kể cả trên
+// Tool ClaudeMon cấp cho mọi session: gửi ảnh, video, tệp cho người dùng xem ngay trong khung chat (kể cả trên
 // điện thoại), thay cho SendUserFile vốn chỉ có trong app Claude. Giao diện vẽ tool này như SendUserFile
 // (normalize.ts); agent chỉ phục vụ tệp có tên trong lịch sử session.
-export const SEND_FILE_TOOL = 'mcp__sessionmon__send_user_file';
-export const CHECKLIST_TOOLS = ['mcp__sessionmon__checklist_get', 'mcp__sessionmon__checklist_report'];
+export const SEND_FILE_TOOL = 'mcp__claudemon__send_user_file';
+export const CHECKLIST_TOOLS = ['mcp__claudemon__checklist_get', 'mcp__claudemon__checklist_report'];
 
 // Checklist verify (vd trước khi release): agent.ts cắm vào để tool đọc và ghi lượt chạy trong library.
 export interface ChecklistHooks {
@@ -45,17 +45,17 @@ export const setChecklistHooks = (h: ChecklistHooks) => (checklistHooks = h);
 
 const textResult = (text: string, isError = false) => ({ content: [{ type: 'text' as const, text }], ...(isError ? { isError } : {}) });
 
-function sessionmonServer(cwd: string, sessionId: string) {
+function claudemonServer(cwd: string, sessionId: string) {
   return createSdkMcpServer({
-    name: 'sessionmon',
+    name: 'claudemon',
     version: '1.0.0',
     instructions:
-      'Người dùng đang xem session qua SessionMon, thường từ điện thoại hoặc máy khác, nên không mở được tệp trên máy này. ' +
+      'Người dùng đang xem session qua ClaudeMon, thường từ điện thoại hoặc máy khác, nên không mở được tệp trên máy này. ' +
       'Khi cần cho người dùng xem ảnh (ảnh chụp màn hình, ảnh trước/sau, biểu đồ), video hay tệp, gọi send_user_file với ' +
       'đường dẫn tệp: tệp hiện ngay trong khung chat. Báo cáo HTML cũng gửi bằng send_user_file: người dùng xem ngay trong ' +
-      'SessionMon hoặc mở bằng trình duyệt (ảnh, css, js để cùng thư mục hoặc thư mục con của tệp HTML, gọi bằng đường dẫn tương đối). ' +
+      'ClaudeMon hoặc mở bằng trình duyệt (ảnh, css, js để cùng thư mục hoặc thư mục con của tệp HTML, gọi bằng đường dẫn tương đối). ' +
       'Đừng mở tệp bằng chương trình trên máy thay cho việc này. ' +
-      'Khi được nhờ verify một checklist của SessionMon (có mã lượt chạy), đọc các mục bằng checklist_get rồi kiểm xong mục nào ' +
+      'Khi được nhờ verify một checklist của ClaudeMon (có mã lượt chạy), đọc các mục bằng checklist_get rồi kiểm xong mục nào ' +
       'báo ngay mục đó bằng checklist_report, để người dùng thấy tiến độ trong trang checklist.',
     tools: [
       tool(
@@ -78,10 +78,10 @@ function sessionmonServer(cwd: string, sessionId: string) {
       ),
       tool(
         'checklist_get',
-        'Đọc một lượt chạy checklist của SessionMon: tên, phiên bản, hướng dẫn và từng mục (id, nội dung, kết quả hiện có).',
+        'Đọc một lượt chạy checklist của ClaudeMon: tên, phiên bản, hướng dẫn và từng mục (id, nội dung, kết quả hiện có).',
         { run: z.string().describe('Mã lượt chạy checklist') },
         async ({ run }) => {
-          if (!checklistHooks) return textResult('Agent SessionMon chưa sẵn sàng.', true);
+          if (!checklistHooks) return textResult('Agent ClaudeMon chưa sẵn sàng.', true);
           try {
             return textResult(checklistHooks.get(run));
           } catch (e) {
@@ -100,7 +100,7 @@ function sessionmonServer(cwd: string, sessionId: string) {
             .min(1),
         },
         async ({ run, results }) => {
-          if (!checklistHooks) return textResult('Agent SessionMon chưa sẵn sàng.', true);
+          if (!checklistHooks) return textResult('Agent ClaudeMon chưa sẵn sàng.', true);
           try {
             return textResult(checklistHooks.report(run, results, sessionId));
           } catch (e) {
@@ -192,7 +192,7 @@ function buildContent(sessionId: string, text: string, attachments: Attachment[]
     if (IMAGE_TYPES.has(a.type)) {
       blocks.push({ type: 'image', source: { type: 'base64', media_type: a.type, data: a.data } });
     } else {
-      const dir = join(tmpdir(), 'sessionmon-uploads', sessionId);
+      const dir = join(tmpdir(), 'claudemon-uploads', sessionId);
       mkdirSync(dir, { recursive: true });
       const path = join(dir, `${Date.now()}-${basename(a.name).replace(/[^\p{L}\p{N}._-]+/gu, '_')}`);
       Bun.write(path, Buffer.from(a.data, 'base64'));
@@ -245,8 +245,8 @@ export class LiveSession {
         effort: opts.effort,
         includePartialMessages: true,
         canUseTool: this.canUseTool,
-        mcpServers: { sessionmon: sessionmonServer(cwd, id) },
-        // Tool của SessionMon chỉ gửi tệp hay ghi kết quả checklist, không đụng máy: khỏi hỏi quyền.
+        mcpServers: { claudemon: claudemonServer(cwd, id) },
+        // Tool của ClaudeMon chỉ gửi tệp hay ghi kết quả checklist, không đụng máy: khỏi hỏi quyền.
         allowedTools: [SEND_FILE_TOOL, ...CHECKLIST_TOOLS],
         pathToClaudeCodeExecutable: CLAUDE_PATH,
         // Không bật thì Claude Code không báo session_state_changed. Thiếu nó, trạng thái chỉ đoán được qua result,
@@ -347,7 +347,7 @@ export class LiveSession {
         updatedPermissions: d.always ? p.suggestions : undefined,
       });
     } else {
-      p.resolve({ behavior: 'deny', message: d.message || 'Người dùng từ chối qua SessionMon' });
+      p.resolve({ behavior: 'deny', message: d.message || 'Người dùng từ chối qua ClaudeMon' });
     }
     this.emit({ type: 'permission_done', sessionId: this.id, requestId });
     if (!this.pending.size && this.state === 'requires_action') this.setState('running');

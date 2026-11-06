@@ -1,7 +1,7 @@
 // Nút chép (copy) trong khung chat.
 // - Khối code: nút "Copy" ở góc trên phải, chép đúng chữ trong khối (giữ tab, xuống dòng: dán TSV lên Google Sheet vẫn đúng cột).
 // - Cả tin của Claude: nút nhỏ cạnh giờ trả lời xong, chép Markdown gốc của mọi đoạn chữ trong lượt.
-// Điện thoại hay mở SessionMon qua http trong tailnet (không phải ngữ cảnh an toàn) nên navigator.clipboard có thể không có:
+// Điện thoại hay mở ClaudeMon qua http trong tailnet (không phải ngữ cảnh an toàn) nên navigator.clipboard có thể không có:
 // khi đó (hoặc khi nó từ chối) dùng textarea ẩn + document.execCommand('copy'). Cả hai hỏng thì báo lỗi.
 
 const DONE_MS = 1500;

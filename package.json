@@ -1,5 +1,5 @@
 {
-  "name": "sessionmon",
+  "name": "claudemon",
   "private": true,
   "type": "module",
   "scripts": {

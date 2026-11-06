@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Cài SessionMon cho máy hiện tại: Bun, thư viện, Scheduled Task chạy agent lúc đăng nhập, `tailscale serve`.
+    Cài ClaudeMon cho máy hiện tại: Bun, thư viện, Scheduled Task chạy agent lúc đăng nhập, `tailscale serve`.
 .DESCRIPTION
     Chạy bằng install.cmd (nháy đúp) hoặc powershell -File install.ps1. Chạy lặp lại được, không hỏi gì, không mở cửa sổ.
     Agent chỉ bị khởi động lại khi mã trong kho đổi và không có session nào đang chạy.
@@ -14,14 +14,14 @@ if (-not $UserHome) { $UserHome = [Environment]::GetFolderPath('UserProfile') }
 
 $Root = $PSScriptRoot
 $RepoRoot = $Root
-$TaskName = 'SessionMon Agent'
-$StateFile = Join-Path $UserHome '.sessionmon\sessionmon-tree.txt'
+$TaskName = 'ClaudeMon Agent'
+$StateFile = Join-Path $UserHome '.claudemon\claudemon-tree.txt'
 $Config = Get-Content -LiteralPath (Join-Path $Root 'machines.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $Port = [int]$Config.port
 $Self = @($Config.machines | Where-Object { $_.computer -ieq $env:COMPUTERNAME })[0]
 
-function Say([string]$Text) { Write-Output "sessionmon: $Text" }
-function Fail([string]$Text) { Write-Output "sessionmon: $Text"; exit 1 }
+function Say([string]$Text) { Write-Output "claudemon: $Text" }
+function Fail([string]$Text) { Write-Output "claudemon: $Text"; exit 1 }
 
 # --- 1. Bun ---------------------------------------------------------------------------------------
 function Find-Bun {
@@ -46,7 +46,7 @@ if (-not $Bun) {
 }
 
 # --- 2. Thư viện -----------------------------------------------------------------------------------
-$marker = Join-Path $Root 'node_modules\.sessionmon-installed'
+$marker = Join-Path $Root 'node_modules\.claudemon-installed'
 $lock = Join-Path $Root 'bun.lock'
 $needInstall = -not (Test-Path -LiteralPath $marker) -or
     ((Get-Item -LiteralPath $lock).LastWriteTimeUtc -gt (Get-Item -LiteralPath $marker).LastWriteTimeUtc)
@@ -75,7 +75,7 @@ if (-not $same) {
         -DontStopIfGoingOnBatteries -StartWhenAvailable -MultipleInstances IgnoreNew `
         -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
     Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings `
-        -Description 'sessionmon-agent: điều khiển session Claude Code từ xa (kho sessionmon)' -Force | Out-Null
+        -Description 'claudemon-agent: điều khiển session Claude Code từ xa (kho claudemon)' -Force | Out-Null
     Say "đã đăng ký Scheduled Task '$TaskName'"
 }
 
@@ -105,7 +105,7 @@ if ($agentPid -and $taskRunning -and $tree -eq $lastTree) {
     # dừng task chỉ tắt conhost, không kéo theo các tiến trình con.
     if ($taskRunning) { Stop-ScheduledTask -TaskName $TaskName }
     Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
-        Where-Object { $_.CommandLine -like '*sessionmon*run-agent.ps1*' -and $_.ProcessId -ne $PID } |
+        Where-Object { $_.CommandLine -like '*claudemon*run-agent.ps1*' -and $_.ProcessId -ne $PID } |
         ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
     if ($agentPid) { Stop-Process -Id $agentPid -Force -ErrorAction SilentlyContinue }
     $deadline = (Get-Date).AddSeconds(10)
@@ -119,7 +119,7 @@ if ($agentPid -and $taskRunning -and $tree -eq $lastTree) {
 }
 
 # --- 5. Shortcut ngoài Desktop và Start Menu ------------------------------------------------------
-# Mở SessionMon thành cửa sổ riêng như app (Chrome --app, không có Chrome thì Edge), icon ngôi sao. Chỉ ghi lại khi khác đi.
+# Mở ClaudeMon thành cửa sổ riêng như app (Chrome --app, không có Chrome thì Edge), icon ngôi sao. Chỉ ghi lại khi khác đi.
 function Find-Browser {
     foreach ($exe in 'chrome.exe', 'msedge.exe') {
         foreach ($hive in 'HKLM:', 'HKCU:') {
@@ -133,7 +133,7 @@ function Find-Browser {
 # Đọc/ghi System.AppUserModel.ID của tệp .lnk (WScript.Shell không làm được việc này).
 Add-Type -TypeDefinition @'
 using System; using System.Runtime.InteropServices;
-public static class SessionMonLnkAppId {
+public static class ClaudeMonLnkAppId {
     [StructLayout(LayoutKind.Sequential, Pack = 4)] struct PropKey { public Guid fmtid; public uint pid; }
     [StructLayout(LayoutKind.Sequential)] struct PropVariant { public ushort vt; ushort r1, r2, r3; public IntPtr p; IntPtr p2; }
     [ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -166,39 +166,39 @@ if ($browser) {
     # Ghim profile Default để ID không đổi theo profile Chrome dùng gần nhất.
     $appArgs = "--profile-directory=Default --app=http://127.0.0.1:$Port/"
     $appId = $(if ((Split-Path -Leaf $browser) -ieq 'msedge.exe') { 'MSEdge' } else { 'Chrome' }) + '.127.0.0.1_/'
-    $icon = Join-Path $Root 'sessionmon.ico'
+    $icon = Join-Path $Root 'claudemon.ico'
     $shell = New-Object -ComObject WScript.Shell
-    # Đã cài SessionMon thành app thật (PWA, Chrome tự tạo shortcut "--app-id=..." trong "Chrome Apps"/"Edge Apps") thì dùng
+    # Đã cài ClaudeMon thành app thật (PWA, Chrome tự tạo shortcut "--app-id=..." trong "Chrome Apps"/"Edge Apps") thì dùng
     # app đó: chỉ PWA mới đọc manifest (thanh tiêu đề theo theme, Window Controls Overlay). Gỡ shortcut --app của mình
     # (chỉ gỡ shortcut có "--app=", không đụng shortcut Chrome tạo) và không tạo lại.
-    $pwa = Get-ChildItem -LiteralPath $startMenu -Recurse -Filter 'SessionMon*.lnk' -ErrorAction SilentlyContinue |
+    $pwa = Get-ChildItem -LiteralPath $startMenu -Recurse -Filter 'ClaudeMon*.lnk' -ErrorAction SilentlyContinue |
         Where-Object { $_.DirectoryName -match '(Chrome|Edge) Apps' -and $shell.CreateShortcut($_.FullName).Arguments -match '--app-id=' } |
         Select-Object -First 1
     $places = @(@{ Dir = $desktop; Name = 'Desktop' }, @{ Dir = $startMenu; Name = 'Start Menu' })
     if ($pwa) {
         foreach ($place in $places) {
-            $lnk = Join-Path $place.Dir 'SessionMon.lnk'
+            $lnk = Join-Path $place.Dir 'ClaudeMon.lnk'
             if ((Test-Path -LiteralPath $lnk) -and $shell.CreateShortcut($lnk).Arguments -match '--app=') {
                 Remove-Item -LiteralPath $lnk -Force
-                Say "đã gỡ shortcut --app cũ ở $($place.Name) (đã có app SessionMon cài từ trình duyệt)"
+                Say "đã gỡ shortcut --app cũ ở $($place.Name) (đã có app ClaudeMon cài từ trình duyệt)"
             }
         }
         $places = @()
     }
     foreach ($place in $places) {
         New-Item -ItemType Directory -Force -Path $place.Dir | Out-Null
-        $lnk = Join-Path $place.Dir 'SessionMon.lnk'
+        $lnk = Join-Path $place.Dir 'ClaudeMon.lnk'
         $exists = Test-Path -LiteralPath $lnk
         $sc = $shell.CreateShortcut($lnk)
-        if (-not $exists -or $sc.TargetPath -ne $browser -or $sc.Arguments -ne $appArgs -or $sc.IconLocation -ne "$icon,0" -or [SessionMonLnkAppId]::Get($lnk) -ne $appId) {
+        if (-not $exists -or $sc.TargetPath -ne $browser -or $sc.Arguments -ne $appArgs -or $sc.IconLocation -ne "$icon,0" -or [ClaudeMonLnkAppId]::Get($lnk) -ne $appId) {
             $sc.TargetPath = $browser
             $sc.Arguments = $appArgs
             $sc.IconLocation = "$icon,0"
-            $sc.Description = 'SessionMon: điều khiển session Claude Code trên mọi máy'
+            $sc.Description = 'ClaudeMon: điều khiển session Claude Code trên mọi máy'
             $sc.WorkingDirectory = $Root
             $sc.Save()
-            [SessionMonLnkAppId]::Set($lnk, $appId)
-            Say "đã tạo shortcut SessionMon ở $($place.Name)"
+            [ClaudeMonLnkAppId]::Set($lnk, $appId)
+            Say "đã tạo shortcut ClaudeMon ở $($place.Name)"
         }
     }
 } else {

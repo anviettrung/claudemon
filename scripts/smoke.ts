@@ -1,4 +1,4 @@
-// Kiểm thử SessionMon từ đầu đến cuối qua API thật của các agent đang chạy (mọi máy trong machines.json).
+// Kiểm thử ClaudeMon từ đầu đến cuối qua API thật của các agent đang chạy (mọi máy trong machines.json).
 // Chạy: bun run scripts/smoke.ts            (mọi nhóm)
 //       bun run scripts/smoke.ts security library   (chỉ vài nhóm)
 // Mỗi nhóm có session Claude thật nên tốn một ít lượt dùng. Session thử nằm trong thư mục tạm, được đóng lại khi xong.
@@ -11,8 +11,8 @@ const ROOT = resolve(import.meta.dir, '..');
 const cfg: { machines: MachineInfo[]; owner: string; port: number } = JSON.parse(readFileSync(join(ROOT, 'machines.json'), 'utf8'));
 const LOCAL = `http://127.0.0.1:${cfg.port}`;
 const only = new Set(process.argv.slice(2));
-// Thư mục làm việc trên máy khác: phải tồn tại ở đó. Mặc định là chỗ đặt kho sessionmon.
-const REMOTE_CWD = process.env.SESSIONMON_REMOTE_CWD ?? 'D:\\Projects\\sessionmon';
+// Thư mục làm việc trên máy khác: phải tồn tại ở đó. Mặc định là chỗ đặt kho claudemon.
+const REMOTE_CWD = process.env.CLAUDEMON_REMOTE_CWD ?? 'D:\\Projects\\claudemon';
 
 let failed = 0;
 let passed = 0;
@@ -104,7 +104,7 @@ const info = (await http(LOCAL, '/api/info')).data as { self: MachineInfo; machi
 const remotes = info.machines.filter((m) => m.computer !== info.self.computer && m.url);
 console.log(`Máy chạy test: ${info.self.name}; máy khác: ${remotes.map((m) => m.name).join(', ') || '(không có)'}\n`);
 
-const workDir = join(tmpdir(), 'sessionmon-smoke');
+const workDir = join(tmpdir(), 'claudemon-smoke');
 rmSync(workDir, { recursive: true, force: true });
 mkdirSync(workDir, { recursive: true });
 const opened: { base: string; id: string }[] = [];
@@ -258,10 +258,10 @@ if (!only.size || only.has('remote')) {
     const ok = await step(`[${m.name}] WebSocket qua tailnet`, () => feed.ready.then(() => true));
     if (!ok) continue;
     check(`[${m.name}] WebSocket qua tailnet`, true);
-    const sid = await step(`[${m.name}] tạo session`, () => newSession(m.url!, REMOTE_CWD, 'Chỉ trả lời đúng một từ: SESSIONMON_OK. Không dùng tool.', 'plan'));
+    const sid = await step(`[${m.name}] tạo session`, () => newSession(m.url!, REMOTE_CWD, 'Chỉ trả lời đúng một từ: CLAUDEMON_OK. Không dùng tool.', 'plan'));
     if (sid) {
       await step(`[${m.name}] nhận kết quả`, () => feed.wait(isResult(sid)));
-      check(`[${m.name}] điều khiển session từ xa`, /SESSIONMON_OK/.test(textOf(feed.events, sid)), textOf(feed.events, sid).slice(0, 30));
+      check(`[${m.name}] điều khiển session từ xa`, /CLAUDEMON_OK/.test(textOf(feed.events, sid)), textOf(feed.events, sid).slice(0, 30));
       await http(m.url!, `/api/sessions/${sid}/close`, {});
     }
     feed.close();
@@ -325,7 +325,7 @@ if (!only.size || only.has('library')) {
 // 6. Tệp tĩnh và PWA -------------------------------------------------------------------------------
 if (!only.size || only.has('pwa')) {
   const html = await (await fetch(LOCAL + '/')).text();
-  check('trang chính có nội dung', html.includes('SessionMon') && html.length > 1000, `${html.length} byte`);
+  check('trang chính có nội dung', html.includes('ClaudeMon') && html.length > 1000, `${html.length} byte`);
   const manifestHref = html.match(/rel="manifest" href="([^"]+)"/)?.[1];
   const manifestUrl = manifestHref ? new URL(manifestHref, LOCAL + '/').href : '';
   const mf = manifestUrl ? await fetch(manifestUrl) : null;

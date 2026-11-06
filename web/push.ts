@@ -5,7 +5,7 @@ export const push = {
   supported: false,
   on: false,
   endpoint: '',
-  // iPhone / iPad chỉ nhận thông báo đẩy khi mở SessionMon từ màn hình chính (PWA đã cài).
+  // iPhone / iPad chỉ nhận thông báo đẩy khi mở ClaudeMon từ màn hình chính (PWA đã cài).
   needsInstall: false,
 };
 
@@ -79,7 +79,7 @@ export async function setupPush(onOpen: (url: string) => void) {
 }
 
 export async function enablePush() {
-  if (push.needsInstall) throw new Error('Trên iPhone: chia sẻ → Thêm vào màn hình chính, rồi mở SessionMon từ đó để bật thông báo');
+  if (push.needsInstall) throw new Error('Trên iPhone: chia sẻ → Thêm vào màn hình chính, rồi mở ClaudeMon từ đó để bật thông báo');
   if (!push.supported) throw new Error('Trình duyệt này không hỗ trợ thông báo đẩy');
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') throw new Error('Chưa cho phép thông báo. Bật lại trong cài đặt của trình duyệt / điện thoại');

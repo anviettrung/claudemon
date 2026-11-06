@@ -100,7 +100,7 @@ export class PushHub {
   async test(endpoint: string) {
     const s = this.subs.get(endpoint);
     if (!s) throw new Error('Thiết bị này chưa bật thông báo');
-    await this.sendOne(s, { title: 'SessionMon', body: `Thông báo từ máy ${this.self.name} đã chạy.`, tag: 'sessionmon-test', url: '/' });
+    await this.sendOne(s, { title: 'ClaudeMon', body: `Thông báo từ máy ${this.self.name} đã chạy.`, tag: 'claudemon-test', url: '/' });
   }
 
   // Sự kiện của chính máy này (gọi từ broadcast của agent).
@@ -154,7 +154,7 @@ export class PushHub {
   private async sendOne(s: Sub, p: PushPayload) {
     try {
       await webpush.sendNotification(s.subscription, JSON.stringify(p), {
-        vapidDetails: { subject: this.self.url ?? 'mailto:sessionmon@example.com', ...this.keys },
+        vapidDetails: { subject: this.self.url ?? 'mailto:claudemon@example.com', ...this.keys },
         TTL: 6 * 3600,
         urgency: 'high',
         topic: p.tag.replace(/[^A-Za-z0-9_-]/g, '').slice(-32),

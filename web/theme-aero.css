@@ -313,7 +313,7 @@
   [data-style="aero"][data-scheme="dark"] .sidebar > .conn { text-shadow: none; }
   /* Màn chat phủ lên màn danh sách khi trượt: nền phải đặc, dùng luôn bầu trời */
   [data-style="aero"] .main { background: linear-gradient(var(--glass-strong), var(--glass-strong)), var(--sun), var(--sky); }
-  /* Chữ SessionMon nằm thẳng trên trời xanh: chữ trắng phát sáng */
+  /* Chữ ClaudeMon nằm thẳng trên trời xanh: chữ trắng phát sáng */
   [data-style="aero"] .side-head .brand { background: none; color: #fff; filter: none; font-size: 22px;
     text-shadow: 0 1px 2px rgb(0 60 130 / .55), 0 0 14px rgb(255 255 255 / .55); }
   [data-style="aero"] .side-head .theme-btn { color: #fff; filter: drop-shadow(0 1px 1px rgb(0 60 130 / .5)); }

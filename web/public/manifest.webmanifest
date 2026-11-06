@@ -1,6 +1,6 @@
 {
-  "name": "SessionMon",
-  "short_name": "SessionMon",
+  "name": "ClaudeMon",
+  "short_name": "ClaudeMon",
   "description": "Điều khiển các session Claude Code trên mọi máy",
   "id": "/",
   "start_url": "/",

@@ -1,4 +1,4 @@
-// Service worker của SessionMon: cài PWA, nhận thông báo đẩy và hiện thông báo; không cache gì, luôn đi mạng.
+// Service worker của ClaudeMon: cài PWA, nhận thông báo đẩy và hiện thông báo; không cache gì, luôn đi mạng.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 
@@ -11,7 +11,7 @@ self.addEventListener('push', (e) => {
     d = { body: e.data ? e.data.text() : '' };
   }
   e.waitUntil(
-    self.registration.showNotification(d.title || 'SessionMon', {
+    self.registration.showNotification(d.title || 'ClaudeMon', {
       body: d.body || '',
       tag: d.tag,
       renotify: !!d.tag,
@@ -22,7 +22,7 @@ self.addEventListener('push', (e) => {
   );
 });
 
-// Bấm thông báo: đưa cửa sổ SessionMon đang có lên và mở đúng session, không có thì mở mới.
+// Bấm thông báo: đưa cửa sổ ClaudeMon đang có lên và mở đúng session, không có thì mở mới.
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
   const url = (e.notification.data && e.notification.data.url) || '/';

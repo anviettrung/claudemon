@@ -9,7 +9,7 @@
     // Đặt theme trước khi trang vẽ (cùng quy tắc với web/theme.ts) để không nháy theme mặc định.
     (function () {
       var p = {};
-      try { p = JSON.parse(localStorage.getItem('sessionmon:theme') || '{}') || {}; } catch (e) {}
+      try { p = JSON.parse(localStorage.getItem('claudemon:theme') || '{}') || {}; } catch (e) {}
       var d = document.documentElement;
       var st = p.style === 'retro' || p.style === 'aero' ? p.style : 'claude';
       d.setAttribute('data-style', st);
@@ -29,8 +29,8 @@
     })();
   </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="SessionMon">
-  <title>SessionMon</title>
+  <meta name="apple-mobile-web-app-title" content="ClaudeMon">
+  <title>ClaudeMon</title>
   <link rel="manifest" href="./public/manifest.webmanifest">
   <link rel="icon" href="./public/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="./public/apple-touch-icon.png">
@@ -39,11 +39,11 @@
   <link rel="stylesheet" href="./theme-aero.css">
 </head>
 <body>
-  <div class="titlebar" aria-hidden="true"><img src="./public/icon-192.png" alt=""><span>SessionMon</span></div>
+  <div class="titlebar" aria-hidden="true"><img src="./public/icon-192.png" alt=""><span>ClaudeMon</span></div>
   <div class="app" id="app">
     <aside class="sidebar" id="sidebar">
       <div class="side-head">
-        <div class="brand">SessionMon</div>
+        <div class="brand">ClaudeMon</div>
         <button class="activity-pill" id="activityPill" type="button" hidden></button>
         <div class="machine" id="machine" title="Máy đang kết nối">…</div>
         <button class="icon-btn theme-btn" id="themeBtn" type="button" title="Giao diện" aria-label="Giao diện" aria-haspopup="menu">

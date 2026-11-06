@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Chạy sessionmon-agent, ghi log, tự chạy lại khi agent thoát. Scheduled Task "SessionMon Agent" gọi tệp này
+    Chạy claudemon-agent, ghi log, tự chạy lại khi agent thoát. Scheduled Task "ClaudeMon Agent" gọi tệp này
     qua `conhost.exe --headless` để không có cửa sổ.
 #>
 param(

@@ -1,4 +1,4 @@
-// Kiểu dữ liệu chung giữa sessionmon-agent và giao diện web.
+// Kiểu dữ liệu chung giữa claudemon-agent và giao diện web.
 
 // Ảnh nằm trong tin (base64): agent giữ ở bộ nhớ, giao diện tải qua url (tương đối với agent).
 export interface MediaRef {
@@ -68,7 +68,7 @@ export interface MachineInfo {
   url?: string;
 }
 
-// Cách sắp xếp session do người dùng đặt, đồng bộ giữa các máy qua nhánh git `sessionmon-library`.
+// Cách sắp xếp session do người dùng đặt, đồng bộ giữa các máy qua nhánh git `claudemon-library`.
 export interface LibraryFolder {
   name: string;
   order: number;
@@ -123,7 +123,7 @@ export type TaskStatus = (typeof TASK_STATUSES)[number];
 export const TASK_PRIORITIES = ['urgent', 'high', 'medium', 'low'] as const;
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
-// Ảnh của task: blob trong nhánh sessionmon-library (thư mục images/), gọi bằng mã SHA-1 của blob.
+// Ảnh của task: blob trong nhánh claudemon-library (thư mục images/), gọi bằng mã SHA-1 của blob.
 export interface TaskImage {
   sha: string;
   type: string;

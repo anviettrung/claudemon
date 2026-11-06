@@ -82,7 +82,7 @@ export async function recycle(paths: string[]): Promise<void> {
   const script = [
     'Add-Type -AssemblyName Microsoft.VisualBasic',
     '$ErrorActionPreference = "Stop"',
-    'foreach ($p in ($env:SESSIONMON_RECYCLE -split "`n")) {',
+    'foreach ($p in ($env:CLAUDEMON_RECYCLE -split "`n")) {',
     '  if (-not $p) { continue }',
     '  if (Test-Path -LiteralPath $p -PathType Container) { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory($p, "OnlyErrorDialogs", "SendToRecycleBin") }',
     '  elseif (Test-Path -LiteralPath $p) { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($p, "OnlyErrorDialogs", "SendToRecycleBin") }',
@@ -91,7 +91,7 @@ export async function recycle(paths: string[]): Promise<void> {
   const p = Bun.spawn(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script], {
     stdout: 'ignore',
     stderr: 'pipe',
-    env: { ...process.env, SESSIONMON_RECYCLE: paths.join('\n') },
+    env: { ...process.env, CLAUDEMON_RECYCLE: paths.join('\n') },
   });
   const [err, code] = await Promise.all([new Response(p.stderr).text(), p.exited]);
   if (code !== 0) throw new Error(err.trim().split('\n')[0] || `powershell thoát mã ${code}`);

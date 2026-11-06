@@ -1,13 +1,13 @@
 // Cách sắp xếp session (thư mục, nhãn, ghim, tên tự đặt), đồng bộ giữa các máy qua nhánh git riêng.
 //
-// Nhánh `sessionmon-library` của chính kho sessionmon chứa library.json và images/ (ảnh của task). Agent đọc và ghi nhánh đó bằng lệnh git
+// Nhánh `claudemon-library` của chính kho claudemon chứa library.json và images/ (ảnh của task). Agent đọc và ghi nhánh đó bằng lệnh git
 // cấp thấp (hash-object, mktree, commit-tree, push), không đụng thư mục làm việc hay nhánh main, nên bộ
-// kéo bản mới (nút Khởi động lại agent) không bao giờ thấy thay đổi chưa commit hay lệch nhánh vì SessionMon.
+// kéo bản mới (nút Khởi động lại agent) không bao giờ thấy thay đổi chưa commit hay lệch nhánh vì ClaudeMon.
 // Hai máy cùng sửa: gộp theo từng bản ghi, bản có updatedAt mới hơn thắng.
 import { existsSync } from 'node:fs';
 import type { Library, SyncState } from './protocol.ts';
 
-const BRANCH = 'sessionmon-library';
+const BRANCH = 'claudemon-library';
 const REMOTE_REF = `refs/remotes/origin/${BRANCH}`;
 const FILE = 'library.json';
 const POLL_MS = 60_000;
@@ -198,7 +198,7 @@ export class LibraryStore {
       }
     }
     const tree = (await this.git(['mktree'], entries)).out.trim();
-    const args = ['commit-tree', tree, '-m', `sessionmon: cập nhật library từ máy ${this.machine}`];
+    const args = ['commit-tree', tree, '-m', `claudemon: cập nhật library từ máy ${this.machine}`];
     if (parent) args.push('-p', parent);
     const r = await this.git(args);
     if (r.code !== 0) throw new Error(`git commit-tree: ${r.err.trim()}`);

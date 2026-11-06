@@ -1,5 +1,5 @@
 {
-  "_doc": "Danh sách máy cho SessionMon. owner = email tài khoản Tailscale của bạn (chỉ tài khoản này vào được). computer = $env:COMPUTERNAME, host = tên máy trong tailnet (install.ps1 tự đặt), name = tên ngắn hiện trên giao diện. Không chứa bí mật.",
+  "_doc": "Danh sách máy cho ClaudeMon. owner = email tài khoản Tailscale của bạn (chỉ tài khoản này vào được). computer = $env:COMPUTERNAME, host = tên máy trong tailnet (install.ps1 tự đặt), name = tên ngắn hiện trên giao diện. Không chứa bí mật.",
   "owner": "you@example.com",
   "port": 7420,
   "wakeup": {

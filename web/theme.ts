@@ -10,7 +10,7 @@ export interface ThemePref {
   scheme: ThemeScheme;
 }
 
-const KEY = 'sessionmon:theme';
+const KEY = 'claudemon:theme';
 const dark = matchMedia('(prefers-color-scheme: dark)');
 
 // LUẬT MÉP TRÊN: mỗi theme (và mỗi bản sáng / tối) chỉ có MỘT màu mép trên, dùng cho thanh trạng thái điện thoại,

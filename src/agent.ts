@@ -1,4 +1,4 @@
-// sessionmon-agent: phục vụ giao diện web và điều khiển các session Claude Code trên máy này.
+// claudemon-agent: phục vụ giao diện web và điều khiển các session Claude Code trên máy này.
 import { getSessionMessages, listSessions, query, renameSession, type SDKSessionInfo, type SDKUserMessage } from '@anthropic-ai/claude-agent-sdk';
 import { homedir } from 'node:os';
 import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
@@ -47,7 +47,7 @@ const self: MachineInfo = config.machines.find((m) => m.computer.toUpperCase() =
   name: computer || 'local',
   computer,
 };
-const PORT = Number(process.env.SESSIONMON_PORT ?? config.port);
+const PORT = Number(process.env.CLAUDEMON_PORT ?? config.port);
 
 // Hậu tố MagicDNS của tailnet (vd tailxxxxxx.ts.net), lấy từ `tailscale status`.
 async function tailnetSuffix(): Promise<string | null> {
@@ -218,7 +218,7 @@ function shortTitle(text: string, max = 50): string {
   return (sp > max * 0.6 ? cut.slice(0, sp) : cut).replace(/[,;:\s]+$/, '') + '…';
 }
 
-// Session mới mở từ SessionMon: tên tạm từ tin đầu, dùng tới khi tệp lịch sử có tiêu đề.
+// Session mới mở từ ClaudeMon: tên tạm từ tin đầu, dùng tới khi tệp lịch sử có tiêu đề.
 const draftTitles = new Map<string, string>();
 
 let listCache: { at: number; items: SDKSessionInfo[] } | null = null;
@@ -416,9 +416,9 @@ function originAllowed(req: Request): boolean {
   }
 }
 
-// Session tự do (không thuộc dự án): mỗi session một thư mục riêng ~/SessionMon/scratch-workspaces/scratch-<ngày giờ>,
+// Session tự do (không thuộc dự án): mỗi session một thư mục riêng ~/ClaudeMon/scratch-workspaces/scratch-<ngày giờ>,
 // để tệp nó tạo ra (báo cáo, ảnh) không lẫn vào nhau. Giao diện nhận ra nhóm này qua đoạn "scratch-workspaces".
-const SCRATCH_ROOT = resolve(homedir(), 'SessionMon', 'scratch-workspaces');
+const SCRATCH_ROOT = resolve(homedir(), 'ClaudeMon', 'scratch-workspaces');
 function newScratchDir(): string {
   const d = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -508,7 +508,7 @@ const server = Bun.serve({
   port: PORT,
   // Bun mặc định cắt kết nối rảnh sau 10 giây; trình duyệt dùng lại kết nối đã cắt thì request treo.
   idleTimeout: 0,
-  development: process.env.SESSIONMON_DEV === '1',
+  development: process.env.CLAUDEMON_DEV === '1',
   routes: {
     '/': index,
     ...staticFiles(),
@@ -718,7 +718,7 @@ const server = Bun.serve({
       },
     }),
 
-    // Tải ảnh của task lên: { type, data (base64) } -> { sha, type }. Ảnh nằm trong nhánh sessionmon-library nên máy nào cũng xem được.
+    // Tải ảnh của task lên: { type, data (base64) } -> { sha, type }. Ảnh nằm trong nhánh claudemon-library nên máy nào cũng xem được.
     '/api/library/image': api({
       POST: async (req) => {
         const b = await body(req);
@@ -883,7 +883,7 @@ const server = Bun.serve({
       },
     }),
 
-    // Khởi động lại agent (nút trong menu Hệ thống, chỉ trên máy tính): kéo code mới của kho sessionmon (chỉ fast-forward),
+    // Khởi động lại agent (nút trong menu Hệ thống, chỉ trên máy tính): kéo code mới của kho claudemon (chỉ fast-forward),
     // cài lại gói nếu bun.lock đổi, đóng các session đang mở rồi thoát. Vòng lặp scripts/run-agent.ps1 bật lại agent
     // sau 5 giây với code mới. Lịch sử session còn nguyên, gửi tin là chạy tiếp.
     '/api/agent/restart': api({
@@ -904,11 +904,11 @@ const server = Bun.serve({
         // Ghi lại phiên bản đã chạy để install.ps1 lần sau không khởi động lại thêm lần nữa.
         const tree = git('rev-parse', 'HEAD^{tree}');
         if (tree.ok) {
-          const dir = join(homedir(), '.sessionmon');
+          const dir = join(homedir(), '.claudemon');
           mkdirSync(dir, { recursive: true });
-          writeFileSync(join(dir, 'sessionmon-tree.txt'), tree.out + '\n');
+          writeFileSync(join(dir, 'claudemon-tree.txt'), tree.out + '\n');
         }
-        console.log(`[sessionmon] khởi động lại theo yêu cầu (${before} -> ${after})`);
+        console.log(`[claudemon] khởi động lại theo yêu cầu (${before} -> ${after})`);
         setTimeout(() => {
           for (const l of live.values()) l.close();
           setTimeout(() => process.exit(0), 800);
@@ -1109,4 +1109,4 @@ const server = Bun.serve({
 // Nạp sẵn danh sách model (lần đầu mất ~10 giây vì phải mở Claude Code).
 void listModels().catch(() => {});
 
-console.log(`sessionmon-agent ${self.name} (${self.computer}) tại http://${server.hostname}:${server.port}`);
+console.log(`claudemon-agent ${self.name} (${self.computer}) tại http://${server.hostname}:${server.port}`);
